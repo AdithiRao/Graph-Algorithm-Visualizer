@@ -1,9 +1,11 @@
 
 NOT_VISITED = 0
-JUST_VISITED = 1
-VISITED = 2
-CURR_VISITING = 3
-FOUND = 4
+CURR_VISITING = 1
+VISITED_1_STEP_AGO = 2
+VISITED_2_STEPS_AGO = 3
+VISITED_3_STEPS_AGO = 4
+VISITED_A_WHILE_AGO = 5
+FOUND = 6
 
 class DFS:
     def __init__(self, start, target, grid):
@@ -14,23 +16,33 @@ class DFS:
         self.target = target
         self.grid = grid
 
+    def grid_updates(self):
+        if len(self.order_visited) > 0:
+            (recently_visited_x, recently_visited_y) = self.order_visited[-1]
+            self.grid[recently_visited_x][recently_visited_y] = VISITED_1_STEP_AGO
+        if len(self.order_visited) > 1:
+            print("here")
+            (past_visited_x, past_visited_y) = self.order_visited[-2]
+            self.grid[past_visited_x][past_visited_y] = VISITED_2_STEPS_AGO
+        if len(self.order_visited) > 2:
+            (past_visited_x, past_visited_y) = self.order_visited[-3]
+            self.grid[past_visited_x][past_visited_y] = VISITED_3_STEPS_AGO
+        if len(self.order_visited) > 3:
+            (past_visited_x, past_visited_y) = self.order_visited[-4]
+            self.grid[past_visited_x][past_visited_y] = VISITED_A_WHILE_AGO
+
     def dfs_one_step(self):
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
-        print(len(self.visited_set))
+        #print(len(self.visited_set))
+        print(len(self.order_visited))
         if len(self.visited_set) == grid_height*grid_width:
             return (False, True)
         while self.stack:
             curr_x, curr_y = self.stack.pop()
             if (curr_x, curr_y) in self.visited_set:
                 continue
-            if len(self.order_visited) > 0:
-                (recently_visited_x, recently_visited_y) = self.order_visited[-1]
-                self.grid[recently_visited_x][recently_visited_y] = JUST_VISITED
-            if len(self.order_visited) > 1:
-                (past_visited_x, past_visited_y) = self.order_visited[-2]
-                self.grid[past_visited_x][past_visited_y] = VISITED
-
+            self.grid_updates()
             if (curr_x, curr_y) == self.target:
                 self.grid[curr_x][curr_y] = FOUND
                 return (True, True)

@@ -3,29 +3,34 @@
 import pygame
 from dfs import DFS
 
-# Define some colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-BACKGROUND_COLOR = (255, 179, 230)
-
-# This sets the WIDTH and HEIGHT of each grid location
+# WINDOW_SIZE = [526, 526]
+WINDOW_SIZE = [300,300]
+# Grid variables
 WIDTH = 20
 HEIGHT = 20
-
-# This sets the margin between each cell
 MARGIN = 1
 
-ROWS = 25
-COLS = 25
+ROWS = (WINDOW_SIZE[0] - MARGIN) // (HEIGHT+MARGIN)
+COLS = (WINDOW_SIZE[1] - MARGIN) // (WIDTH+MARGIN)
 
 NOT_VISITED = 0
-JUST_VISITED = 1
-VISITED = 2
-CURR_VISITING = 3
-FOUND = 4
+CURR_VISITING = 1
+VISITED_1_STEP_AGO = 2
+VISITED_2_STEPS_AGO = 3
+VISITED_3_STEPS_AGO = 4
+VISITED_A_WHILE_AGO = 5
+FOUND = 6
 
+WHITE = (255,245,238)
+GRID_COLOR = (255, 179, 230)
+COLORS = {}
+COLORS[NOT_VISITED] = WHITE #off-white
+COLORS[CURR_VISITING] = (239,98,159)
+COLORS[VISITED_1_STEP_AGO] = (239,105,159)
+COLORS[VISITED_2_STEPS_AGO] = (239,160,161)
+COLORS[VISITED_3_STEPS_AGO] = (238,190,162)
+COLORS[VISITED_A_WHILE_AGO] = (238,205,163)
+COLORS[FOUND] = (0,205,172)
 # Create a 2 dimensional array. A two dimensional
 # array is simply a list of lists.
 grid = []
@@ -35,7 +40,7 @@ for row in range(ROWS):
 
 pygame.init()
 
-WINDOW_SIZE = [526, 526]
+
 screen = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption("Graph Algorithm Visualizer")
 
@@ -47,7 +52,7 @@ clock = pygame.time.Clock()
 start_dfs = True
 running_dfs = False
 start_pos = (0,0)
-target_pos = (28,28)
+target_pos = (4,0)
 # -------- Main Program Loop -----------
 while not done:
     for event in pygame.event.get():  # User did some action
@@ -69,30 +74,68 @@ while not done:
         grid = DFS.grid
         if DFSdone:
             running_dfs = False
-    print(running_dfs)
     # Set the screen background
-    screen.fill(BACKGROUND_COLOR)
+    screen.fill(GRID_COLOR)
 
     # Draw the grid
     for row in range(ROWS):
         for column in range(COLS):
             color = WHITE
-            if grid[row][column] == JUST_VISITED:
-                color = GREEN
-            elif grid[row][column] == VISITED:
-                color = BLACK
-            elif grid[row][column] == CURR_VISITING:
-                color = RED
-            elif grid[row][column] == FOUND:
-                color = BACKGROUND_COLOR
             pygame.draw.rect(screen,
                              color,
                              [(MARGIN + WIDTH) * column + MARGIN,
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
+            color = COLORS[grid[row][column]]
+            # print(color)
+            if grid[row][column] == CURR_VISITING:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/2,
+                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2,
+                                  WIDTH/4,
+                                  HEIGHT/4])
+            elif grid[row][column] == VISITED_1_STEP_AGO:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/3,
+                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/3,
+                                  WIDTH/3,
+                                  HEIGHT/3])
+            elif grid[row][column] == VISITED_2_STEPS_AGO:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/4,
+                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/4,
+                                  WIDTH/2,
+                                  HEIGHT/2])
+            elif grid[row][column] == VISITED_3_STEPS_AGO:
+                print("here")
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/4,
+                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/4,
+                                  WIDTH*(3/4),
+                                  HEIGHT*(3/4)])
+            elif grid[row][column] == VISITED_A_WHILE_AGO:
+                # print("here")
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN,
+                                  (MARGIN + HEIGHT) * row + MARGIN,
+                                  WIDTH,
+                                  HEIGHT])
+            elif grid[row][column] == FOUND:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN,
+                                  (MARGIN + HEIGHT) * row + MARGIN,
+                                  WIDTH,
+                                  HEIGHT])
+
     # Limit to 60 frames per second
-    clock.tick(60)
+    clock.tick(2)
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
