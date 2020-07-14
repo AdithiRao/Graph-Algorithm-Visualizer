@@ -31,12 +31,7 @@ FOUND = 4
 grid = []
 for row in range(ROWS):
     grid.append([])
-    for column in range(COLS):
-        grid[row].append(0)  # Append a cell
-
-# Set row 1, cell 5 to one. (Remember rows and
-# column numbers start at zero.)
-# grid[1][5] = 1
+    grid[row] = [0]*COLS
 
 pygame.init()
 
@@ -52,30 +47,29 @@ clock = pygame.time.Clock()
 start_dfs = True
 running_dfs = False
 start_pos = (0,0)
-target_pos = (24,24)
+target_pos = (28,28)
 # -------- Main Program Loop -----------
 while not done:
-    for event in pygame.event.get():  # User did something
+    for event in pygame.event.get():  # User did some action
         if event.type == pygame.QUIT:  # If user clicked close
-            done = True  # Flag that we are done so we exit this loop
+            done = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-        #     # User clicks the mouse. Get the position
             pos = pygame.mouse.get_pos()
-        #     # Change the x/y screen coordinates to grid coordinates
             column = pos[0] // (WIDTH + MARGIN)
             row = pos[1] // (HEIGHT + MARGIN)
-        #     # Set that location to one
-        #     grid[row][column] = 1
             print("Click ", pos, "Grid coordinates: ", row, column)
-        if start_dfs:
-            DFS = DFS(start_pos, target_pos, grid)
-            start_dfs = False
-            running_dfs = True
 
-        if running_dfs:
-            if DFS.dfs_one_step():
-                running_dfs = False
-            grid = DFS.grid
+    if start_dfs:
+        DFS = DFS(start_pos, target_pos, grid)
+        start_dfs = False
+        running_dfs = True
+
+    if running_dfs:
+        (found, DFSdone) = DFS.dfs_one_step()
+        grid = DFS.grid
+        if DFSdone:
+            running_dfs = False
+    print(running_dfs)
     # Set the screen background
     screen.fill(BACKGROUND_COLOR)
 
@@ -97,7 +91,6 @@ while not done:
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
-    print(running_dfs)
     # Limit to 60 frames per second
     clock.tick(60)
 
