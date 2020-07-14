@@ -3,15 +3,26 @@
 import pygame
 from dfs import DFS
 
-# WINDOW_SIZE = [526, 526]
-WINDOW_SIZE = [300,300]
+GRID_SIZE = [526, 526]
+# GRID_SIZE = [300,300]
+
+MENU_HEIGHT = 200
+WINDOW_SIZE = [GRID_SIZE[0], GRID_SIZE[1] + MENU_HEIGHT]
+BUTTON_WIDTH = 100
+BUTTON_HEIGHT = 50
+BUTTON_MARGIN = 25
+
 # Grid variables
 WIDTH = 20
 HEIGHT = 20
 MARGIN = 1
 
-ROWS = (WINDOW_SIZE[0] - MARGIN) // (HEIGHT+MARGIN)
-COLS = (WINDOW_SIZE[1] - MARGIN) // (WIDTH+MARGIN)
+ROWS = (GRID_SIZE[0] - MARGIN) // (HEIGHT+MARGIN)
+COLS = (GRID_SIZE[1] - MARGIN) // (WIDTH+MARGIN)
+
+# start and target node variables
+START_COLOR = (208, 229, 245)
+TARGET_COLOR = (47, 93, 128)
 
 NOT_VISITED = 0
 CURR_VISITING = 1
@@ -49,10 +60,65 @@ done = False
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
 
-start_dfs = True
+start_dfs = False
 running_dfs = False
 start_pos = (0,0)
-target_pos = (4,0)
+target_pos = (12,10)
+start_dragging = False
+target_dragging = False
+
+# button starterr code: https://pythonprogramming.net/pygame-button-function-events/?completed=/pygame-button-function/
+
+def text_objects(text, font):
+    textSurface = font.render(text, True, GRID_COLOR)
+    return textSurface, textSurface.get_rect()
+
+def button(screen, msg, x, y, width, height, inactive_color, active_color, action=None):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+
+    if x + width > mouse[0] > x and y + height > mouse[1] > y:
+        pygame.draw.rect(screen, active_color, (x, y, width, height))
+        if click[0] == 1 and action != None:
+            action()
+    else:
+        pygame.draw.rect(screen, inactive_color, (x, y, width, height))
+
+    smallText = pygame.font.Font("freesansbold.ttf",15)
+    textSurf, textRect = text_objects(msg, smallText)
+    textRect.center = ( (x + (width/2)), (y + (height/2)) )
+    screen.blit(textSurf, textRect)
+
+def start_DFS():
+    global start_dfs
+    clear_grid()
+    start_dfs = True
+
+def clear_grid():
+    global ROWS
+    global COLS
+    global MARGIN
+    global WIDTH
+    global HEIGHT
+    global COLORS
+    global WHITE
+    global screen
+    global grid
+    grid = []
+    for row in range(ROWS):
+        grid.append([])
+        grid[row] = [0]*COLS
+    for row in range(ROWS):
+        for column in range(COLS):
+            color = WHITE
+            pygame.draw.rect(screen,
+                             color,
+                             [(MARGIN + WIDTH) * column + MARGIN,
+                              (MARGIN + HEIGHT) * row + MARGIN,
+                              WIDTH,
+                              HEIGHT])
+            color = COLORS[grid[row][column]]
+
 # -------- Main Program Loop -----------
 while not done:
     for event in pygame.event.get():  # User did some action
@@ -64,14 +130,47 @@ while not done:
             row = pos[1] // (HEIGHT + MARGIN)
             print("Click ", pos, "Grid coordinates: ", row, column)
 
+            if (column == start_pos[1] and row == start_pos[0]):
+                start_dragging = True
+                start_offset_x = ((MARGIN + WIDTH) * start_pos[1]) - pos[0]
+                start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
+
+            if (column == target_pos[1] and row == target_pos[0]):
+                target_dragging = True
+                target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
+                target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            start_dragging = False
+            target_dragging = False
+        
+        elif event.type == pygame.MOUSEMOTION:
+            pos = pygame.mouse.get_pos()
+            if start_dragging:
+                start_x = pos[0] + start_offset_x
+                start_y = pos[1] + start_offset_y
+                temp = (start_y // (HEIGHT + MARGIN), start_x // (WIDTH + MARGIN))
+                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS:
+                    start_pos = start_pos
+                else:
+                    start_pos = temp
+            if target_dragging:
+                target_x = pos[0] + target_offset_x
+                target_y = pos[1] + target_offset_y
+                temp = (target_y // (HEIGHT + MARGIN), target_x // (WIDTH + MARGIN))
+                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS:
+                    target_pos = target_pos
+                else:
+                    target_pos = temp
+
     if start_dfs:
-        DFS = DFS(start_pos, target_pos, grid)
+        dfs = DFS(start_pos, target_pos, grid)
         start_dfs = False
         running_dfs = True
 
     if running_dfs:
-        (found, DFSdone) = DFS.dfs_one_step()
-        grid = DFS.grid
+        (found, DFSdone) = dfs.dfs_one_step()
+        grid = dfs.grid
         if DFSdone:
             running_dfs = False
     # Set the screen background
@@ -111,7 +210,7 @@ while not done:
                                   WIDTH/2,
                                   HEIGHT/2])
             elif grid[row][column] == VISITED_3_STEPS_AGO:
-                print("here")
+                # print("here")
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN + WIDTH/4,
@@ -134,8 +233,15 @@ while not done:
                                   WIDTH,
                                   HEIGHT])
 
-    # Limit to 60 frames per second
-    clock.tick(2)
+    # Draw menu buttons
+    button(screen, "Start DFS", BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, start_DFS)
+
+    # draw start and target nodes
+    pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + WIDTH/2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT/2), WIDTH/2)
+    pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] + WIDTH/2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT/2), WIDTH/2)
+
+    # Limit frames per second
+    clock.tick(20)
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
