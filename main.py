@@ -8,6 +8,8 @@ TODO: Stylize main.py and add comments to other files
 TODO: Add hover coloring for buttons
 TODO: Change the icons for start and end (if possible, or else j make prettier)
 TODO: Make the buttons a little prettier
+TODO: Adithi- Fix BFS to be one by one just like DFS because otherwise it's technically
+      not correct
 TODO: Finish migrating all the constants over to constants.py and refactoring main.py accordingly
 TODO: Make the currently running algorithm reset if either the target or start changes (they
         should be able to pick up and change source and dest while running)
