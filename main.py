@@ -2,6 +2,7 @@
 #Grid creation citation: http://programarcadegames.com/index.php?lang=en&chapter=array_backed_grids
 import pygame
 from dfs import DFS
+from bfs import BFS
 
 GRID_SIZE = [526, 526]
 # GRID_SIZE = [300,300]
@@ -62,6 +63,8 @@ clock = pygame.time.Clock()
 
 start_dfs = False
 running_dfs = False
+start_bfs = False
+running_bfs = False
 start_pos = (0,0)
 target_pos = (12,10)
 start_dragging = False
@@ -93,6 +96,11 @@ def start_DFS():
     global start_dfs
     clear_grid()
     start_dfs = True
+
+def start_BFS():
+    global start_bfs
+    clear_grid()
+    start_bfs = True
 
 def clear_grid():
     global ROWS
@@ -143,7 +151,7 @@ while not done:
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
             target_dragging = False
-        
+
         elif event.type == pygame.MOUSEMOTION:
             pos = pygame.mouse.get_pos()
             if start_dragging:
@@ -173,6 +181,17 @@ while not done:
         grid = dfs.grid
         if DFSdone:
             running_dfs = False
+
+    if start_bfs:
+        bfs = BFS(start_pos, target_pos, grid)
+        start_bfs = False
+        running_bfs = True
+
+    if running_bfs:
+        (found, BFSdone) = bfs.bfs_one_step()
+        grid = bfs.grid
+        if BFSdone:
+            running_bfs = False
     # Set the screen background
     screen.fill(GRID_COLOR)
 
@@ -235,13 +254,14 @@ while not done:
 
     # Draw menu buttons
     button(screen, "Start DFS", BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, start_DFS)
+    button(screen, "Start BFS", 2*BUTTON_MARGIN+BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, start_BFS)
 
     # draw start and target nodes
-    pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + WIDTH/2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT/2), WIDTH/2)
-    pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] + WIDTH/2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT/2), WIDTH/2)
+    pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
+    pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] + WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
     # Limit frames per second
-    clock.tick(20)
+    clock.tick(5)
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
