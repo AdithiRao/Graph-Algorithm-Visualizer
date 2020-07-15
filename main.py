@@ -18,7 +18,8 @@ TODO: Add ability to color graph to indicate weights- need to have both positive
       before we can implement more advanced graph search algorithms
 TODO: Add ability to add walls- we can also do the prebuilt maze feature
 TODO: Algos to add: Dijkstras, A*, Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm algorithm
-TODO:
+TODO: Allow them to step through one box at a time with a description of what is going on (what was being
+      visited on the previous round)
 
 '''
 import pygame
