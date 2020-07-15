@@ -15,21 +15,35 @@ class BFS:
         self.order_visited = []
         self.queue = deque()
         self.queue.append(start)
+        self.VISITED_1_STEP_AGO = []
+        self.VISITED_2_STEPS_AGO = []
+        self.VISITED_3_STEPS_AGO = []
+        self.VISITED_A_WHILE_AGO = []
         self.target = target
         self.grid = grid
 
-
     def grid_updates(self):
-        for row in range(len(self.grid)):
-            for col in range(len(self.grid[0])):
-                if self.grid[row][col] == CURR_VISITING:
-                    self.grid[row][col] = VISITED_1_STEP_AGO
-                elif self.grid[row][col] == VISITED_1_STEP_AGO:
-                    self.grid[row][col] = VISITED_2_STEPS_AGO
-                elif self.grid[row][col] == VISITED_2_STEPS_AGO:
-                    self.grid[row][col] = VISITED_3_STEPS_AGO
-                elif self.grid[row][col] == VISITED_3_STEPS_AGO:
-                    self.grid[row][col] = VISITED_A_WHILE_AGO
+        if self.VISITED_A_WHILE_AGO:
+            for (row, col) in self.VISITED_A_WHILE_AGO:
+                self.grid[row][col] = VISITED_A_WHILE_AGO
+        if self.VISITED_3_STEPS_AGO:
+            for (row, col) in self.VISITED_3_STEPS_AGO:
+                self.grid[row][col] = VISITED_3_STEPS_AGO
+            self.VISITED_A_WHILE_AGO = deepcopy(self.VISITED_3_STEPS_AGO)
+        if self.VISITED_2_STEPS_AGO:
+            for (row, col) in self.VISITED_2_STEPS_AGO:
+                self.grid[row][col] = VISITED_2_STEPS_AGO
+            self.VISITED_3_STEPS_AGO = deepcopy(self.VISITED_2_STEPS_AGO)
+        if self.VISITED_1_STEP_AGO:
+            for (row, col) in self.VISITED_1_STEP_AGO:
+                self.grid[row][col] = VISITED_1_STEP_AGO
+            self.VISITED_2_STEPS_AGO = deepcopy(self.VISITED_1_STEP_AGO)
+        if self.queue:
+            self.VISITED_1_STEP_AGO = []
+            for (row, col) in self.queue:
+                if (row, col) not in self.visited_set:
+                    self.grid[row][col] = CURR_VISITING
+                    self.VISITED_1_STEP_AGO.append((row, col))
 
     def bfs_one_step(self):
         grid_height = len(self.grid)
@@ -40,20 +54,21 @@ class BFS:
             num_elements = len(self.queue)
             self.grid_updates()
             while num_elements > 0:
-                curr_x, curr_y = self.queue.popleft()
-                if (curr_x, curr_y) in self.visited_set:
+                curr_row, curr_col = self.queue.popleft()
+                if (curr_row, curr_col) in self.visited_set:
+                    num_elements -= 1
                     continue
-                if (curr_x, curr_y) == self.target:
-                    self.grid[curr_x][curr_y] = FOUND
+                if (curr_row, curr_col) == self.target:
+                    self.grid[curr_row][curr_col] = FOUND
                     return (True, True)
-                self.visited_set.add((curr_x, curr_y))
-                self.grid[curr_x][curr_y] = CURR_VISITING
-                self.order_visited.append((curr_x, curr_y))
+
+                self.visited_set.add((curr_row, curr_col))
+                self.order_visited.append((curr_row, curr_col))
                 for dir in self.directions:
-                    if curr_x+dir[0] >= 0 and curr_x+dir[0] < grid_width and \
-                    curr_y+dir[1] >= 0 and curr_y+dir[1] < grid_height:
-                        if (curr_x+dir[0], curr_y+dir[1]) not in self.visited_set:
-                            self.queue.append((curr_x+dir[0], curr_y+dir[1]))
+                    if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_width and \
+                    curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_height:
+                        if (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
+                            self.queue.append((curr_row+dir[0], curr_col+dir[1]))
                 num_elements -= 1
             break
         return (False, False)

@@ -39,20 +39,20 @@ class DFS:
         if len(self.visited_set) == grid_height*grid_width:
             return (False, True)
         while self.stack:
-            curr_x, curr_y = self.stack.pop()
-            if (curr_x, curr_y) in self.visited_set:
+            curr_row, curr_col = self.stack.pop()
+            if (curr_row, curr_col) in self.visited_set:
                 continue
             self.grid_updates()
-            if (curr_x, curr_y) == self.target:
-                self.grid[curr_x][curr_y] = FOUND
+            if (curr_row, curr_col) == self.target:
+                self.grid[curr_row][curr_col] = FOUND
                 return (True, True)
-            self.visited_set.add((curr_x, curr_y))
-            self.grid[curr_x][curr_y] = CURR_VISITING
-            self.order_visited.append((curr_x, curr_y))
+            self.visited_set.add((curr_row, curr_col))
+            self.grid[curr_row][curr_col] = CURR_VISITING
+            self.order_visited.append((curr_row, curr_col))
             for dir in self.directions:
-                if curr_x+dir[0] >= 0 and curr_x+dir[0] < grid_width and \
-                curr_y+dir[1] >= 0 and curr_y+dir[1] < grid_height:
-                    if (curr_x+dir[0], curr_y+dir[1]) not in self.visited_set:
-                        self.stack.append((curr_x+dir[0], curr_y+dir[1]))
+                if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_width and \
+                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_height:
+                    if (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
+                        self.stack.append((curr_row+dir[0], curr_col+dir[1]))
             break
         return (False, False)
