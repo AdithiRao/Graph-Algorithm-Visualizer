@@ -21,7 +21,6 @@ class DFS:
             (recently_visited_x, recently_visited_y) = self.order_visited[-1]
             self.grid[recently_visited_x][recently_visited_y] = VISITED_1_STEP_AGO
         if len(self.order_visited) > 1:
-            print("here")
             (past_visited_x, past_visited_y) = self.order_visited[-2]
             self.grid[past_visited_x][past_visited_y] = VISITED_2_STEPS_AGO
         if len(self.order_visited) > 2:
@@ -31,11 +30,9 @@ class DFS:
             (past_visited_x, past_visited_y) = self.order_visited[-4]
             self.grid[past_visited_x][past_visited_y] = VISITED_A_WHILE_AGO
 
-    def dfs_one_step(self):
+    def one_step(self):
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
-        #print(len(self.visited_set))
-        print(len(self.order_visited))
         if len(self.visited_set) == grid_height*grid_width:
             return (False, True)
         while self.stack:

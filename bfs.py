@@ -45,7 +45,7 @@ class BFS:
                     self.grid[row][col] = CURR_VISITING
                     self.VISITED_1_STEP_AGO.append((row, col))
 
-    def bfs_one_step(self):
+    def one_step(self):
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
         if len(self.visited_set) == grid_height*grid_width:

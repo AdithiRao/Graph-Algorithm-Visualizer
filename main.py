@@ -1,11 +1,31 @@
-
 #Grid creation citation: http://programarcadegames.com/index.php?lang=en&chapter=array_backed_grids
+
+'''
+TODO: Create a README
+TODO: Fix the alignment of the mini squares (do the math and make sure they are centered in
+      their appropriate boxes)
+TODO: Stylize main.py and add comments to other files
+TODO: Add hover coloring for buttons
+TODO: Change the icons for start and end (if possible, or else j make prettier)
+TODO: Make the buttons a little prettier
+TODO: Finish migrating all the constants over to constants.py and refactoring main.py accordingly
+TODO: Make the currently running algorithm reset if either the target or start changes (they
+        should be able to pick up and change source and dest while running)
+TODO: Make the number of grid lines an dynamic feature based on rows and cols
+TODO: ^ Based on this, if the window gets resized during the game, the grid should auto-adjust
+     (make more/less rows and columns)-- By default the screen should be a rectangle though
+TODO: Add ability to color graph to indicate weights- need to have both positive and negative weights
+      before we can implement more advanced graph search algorithms
+TODO: Add ability to add walls- we can also do the prebuilt maze feature
+TODO: Algos to add: Dijkstras, A*, Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm algorithm
+TODO:
+
+'''
 import pygame
-from dfs import DFS
-from bfs import BFS
+from currGraphAlgo import CurrGraphAlgorithm
+from animations import button
 
 GRID_SIZE = [526, 526]
-# GRID_SIZE = [300,300]
 
 MENU_HEIGHT = 200
 WINDOW_SIZE = [GRID_SIZE[0], GRID_SIZE[1] + MENU_HEIGHT]
@@ -43,8 +63,8 @@ COLORS[VISITED_2_STEPS_AGO] = (239,160,161)
 COLORS[VISITED_3_STEPS_AGO] = (238,190,162)
 COLORS[VISITED_A_WHILE_AGO] = (238,205,163)
 COLORS[FOUND] = (0,205,172)
-# Create a 2 dimensional array. A two dimensional
-# array is simply a list of lists.
+
+
 grid = []
 for row in range(ROWS):
     grid.append([])
@@ -61,71 +81,14 @@ done = False
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
 
-start_dfs = False
-running_dfs = False
-start_bfs = False
-running_bfs = False
+curr_alg = CurrGraphAlgorithm()
+
 start_pos = (0,0)
 target_pos = (12,10)
 start_dragging = False
 target_dragging = False
 
-# button starterr code: https://pythonprogramming.net/pygame-button-function-events/?completed=/pygame-button-function/
 
-def text_objects(text, font):
-    textSurface = font.render(text, True, GRID_COLOR)
-    return textSurface, textSurface.get_rect()
-
-def button(screen, msg, x, y, width, height, inactive_color, active_color, action=None):
-    mouse = pygame.mouse.get_pos()
-    click = pygame.mouse.get_pressed()
-
-    if x + width > mouse[0] > x and y + height > mouse[1] > y:
-        pygame.draw.rect(screen, active_color, (x, y, width, height))
-        if click[0] == 1 and action != None:
-            action()
-    else:
-        pygame.draw.rect(screen, inactive_color, (x, y, width, height))
-
-    smallText = pygame.font.Font("freesansbold.ttf",15)
-    textSurf, textRect = text_objects(msg, smallText)
-    textRect.center = ( (x + (width/2)), (y + (height/2)) )
-    screen.blit(textSurf, textRect)
-
-def start_DFS():
-    global start_dfs
-    clear_grid()
-    start_dfs = True
-
-def start_BFS():
-    global start_bfs
-    clear_grid()
-    start_bfs = True
-
-def clear_grid():
-    global ROWS
-    global COLS
-    global MARGIN
-    global WIDTH
-    global HEIGHT
-    global COLORS
-    global WHITE
-    global screen
-    global grid
-    grid = []
-    for row in range(ROWS):
-        grid.append([])
-        grid[row] = [0]*COLS
-    for row in range(ROWS):
-        for column in range(COLS):
-            color = WHITE
-            pygame.draw.rect(screen,
-                             color,
-                             [(MARGIN + WIDTH) * column + MARGIN,
-                              (MARGIN + HEIGHT) * row + MARGIN,
-                              WIDTH,
-                              HEIGHT])
-            color = COLORS[grid[row][column]]
 
 # -------- Main Program Loop -----------
 while not done:
@@ -171,27 +134,13 @@ while not done:
                 else:
                     target_pos = temp
 
-    if start_dfs:
-        dfs = DFS(start_pos, target_pos, grid)
-        start_dfs = False
-        running_dfs = True
+    if curr_alg.running:
+        (found, alg_done) = curr_alg.instance.one_step()
+        grid = curr_alg.instance.grid
+        if alg_done:
+            curr_alg.algorithm_done()
 
-    if running_dfs:
-        (found, DFSdone) = dfs.dfs_one_step()
-        grid = dfs.grid
-        if DFSdone:
-            running_dfs = False
 
-    if start_bfs:
-        bfs = BFS(start_pos, target_pos, grid)
-        start_bfs = False
-        running_bfs = True
-
-    if running_bfs:
-        (found, BFSdone) = bfs.bfs_one_step()
-        grid = bfs.grid
-        if BFSdone:
-            running_bfs = False
     # Set the screen background
     screen.fill(GRID_COLOR)
 
@@ -253,19 +202,24 @@ while not done:
                                   HEIGHT])
 
     # Draw menu buttons
-    button(screen, "Start DFS", BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, start_DFS)
-    button(screen, "Start BFS", 2*BUTTON_MARGIN+BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, start_BFS)
+    button(screen, "Start DFS", BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN, \
+           BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
+           curr_alg.update_algorithm, start_pos, target_pos, "DFS")
+    button(screen, "Start BFS", 2*BUTTON_MARGIN+BUTTON_WIDTH, GRID_SIZE[1] + \
+           BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
+           curr_alg.update_algorithm, start_pos, target_pos, "BFS")
 
     # draw start and target nodes
-    pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
-    pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] + WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
+    pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
+                       WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
+    pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
+                       WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
     # Limit frames per second
-    clock.tick(5)
+    clock.tick(10)
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
 
-# Be IDLE friendly. If you forget this line, the program will 'hang'
-# on exit.
+
 pygame.quit()
