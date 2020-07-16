@@ -2,7 +2,8 @@
 
 '''
 @Kanvi
-TODO: Add hover coloring for buttons
+TODO: Add hover coloring for buttons/ see if we could possibly still try a drop down instead of buttons
+      (the buttons just look really clunky rn)
 TODO: Make the buttons a little prettier
 TODO: Add ability to add numbers to graph to indicate weights- need to have both positive and negative weights
       before we can implement more advanced graph search algorithms
