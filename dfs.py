@@ -9,6 +9,14 @@ class DFS:
         self.stack = [start]
         self.target = target
         self.grid = grid
+        self.drawing_shortest_path = False
+
+    def step_through_shortest_path(self):
+        if len(self.order_visited) > 0:
+            (node_x, node_y) = self.order_visited.pop(0)
+            self.grid[node_x][node_y] = SHORTEST_PATH_NODE
+            return (True, False)
+        return (True, True)
 
     def grid_updates(self):
         if len(self.order_visited) > 0:
@@ -27,7 +35,9 @@ class DFS:
     def one_step(self):
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
-        print(grid_height, grid_width)
+        if self.drawing_shortest_path:
+            (found, alg_done) = self.step_through_shortest_path()
+            return (found, alg_done)
         if len(self.visited_set) == grid_height*grid_width:
             return (False, True)
         while self.stack:
@@ -37,9 +47,10 @@ class DFS:
             self.grid_updates()
             if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
-                return (True, True)
+                self.drawing_shortest_path = True
+                return (True, False)
+
             self.visited_set.add((curr_row, curr_col))
-            print("A: ", curr_row, curr_col)
             self.grid[curr_row][curr_col] = CURR_VISITING
             self.order_visited.append((curr_row, curr_col))
             for dir in self.directions:

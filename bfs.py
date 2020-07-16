@@ -7,7 +7,7 @@ class BFS:
     def __init__(self, start, target, grid):
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
-        self.order_visited = []
+        #self.order_visited = []
         self.queue = deque()
         self.start = start
         self.queue.append(start)
@@ -74,7 +74,7 @@ class BFS:
             self.grid_updates()
             self.queue.popleft()
 
-            self.order_visited.append((curr_row, curr_col))
+            #self.order_visited.append((curr_row, curr_col))
             for dir in self.directions:
                 if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
                 curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width:
