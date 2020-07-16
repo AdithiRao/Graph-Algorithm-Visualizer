@@ -1,6 +1,7 @@
 #Grid creation citation: http://programarcadegames.com/index.php?lang=en&chapter=array_backed_grids
 
 '''
+TODO: Need to add arrow that shows path from start to target
 TODO: Create a README
 TODO: Fix the alignment of the mini squares (do the math and make sure they are centered in
       their appropriate boxes)

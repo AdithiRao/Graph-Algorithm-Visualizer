@@ -3,6 +3,9 @@ from collections import deque
 
 
 class ASTAR:
+'''
+Summary of algorithm: 
+'''
     def __init__(self, start, target, grid):
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
