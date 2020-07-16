@@ -2,6 +2,8 @@
 
 '''
 TODO: Need to add arrow that shows path from start to target
+TODO: When weights are added as a feature, we need to make sure they cannot dfs or bfs
+      cannot be clicked
 TODO: Create a README
 TODO: Fix the alignment of the mini squares (do the math and make sure they are centered in
       their appropriate boxes)
@@ -156,6 +158,13 @@ while not done:
                                   WIDTH,
                                   HEIGHT])
             elif grid[row][column] == FOUND:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN,
+                                  (MARGIN + HEIGHT) * row + MARGIN,
+                                  WIDTH,
+                                  HEIGHT])
+            elif grid[row][column] == SHORTEST_PATH_NODE:
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN,
