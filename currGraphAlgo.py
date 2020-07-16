@@ -1,6 +1,8 @@
 from enum import Enum
 from bfs import BFS
 from dfs import DFS
+from dijkstras import DIJKSTRAS
+from astar import ASTAR
 from constants import ROWS, COLS, MARGIN, WIDTH, HEIGHT, COLORS, WHITE
 
 class CurrGraphAlgorithm():
@@ -26,6 +28,10 @@ class CurrGraphAlgorithm():
             self.instance = BFS(start, target, grid)
         elif alg == "DFS":
             self.instance = DFS(start, target, grid)
+        elif alg == "DIJKSTRAS":
+            self.instance = DIJKSTRAS(start, target, grid)
+        elif alg == "ASTAR":
+            self.instance = ASTAR(start, target, grid)
 
     def algorithm_done(self):
         self.running = False

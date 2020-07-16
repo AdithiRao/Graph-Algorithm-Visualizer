@@ -1,9 +1,8 @@
-from copy import deepcopy
-from collections import deque
 from constants import *
+from collections import deque
 
 
-class BFS:
+class ASTAR:
     def __init__(self, start, target, grid):
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
@@ -39,24 +38,4 @@ class BFS:
             self.VISITED_1_STEP_AGO = self.queue[0]
 
     def one_step(self):
-        grid_height = len(self.grid)
-        grid_width = len(self.grid[0])
-        if len(self.visited_set) == grid_height*grid_width:
-            return (False, True)
-        while self.queue:
-            curr_row, curr_col = self.queue[0]
-            if self.queue[0] == self.target:
-                self.grid[curr_row][curr_col] = FOUND
-                return (True, True)
-            self.grid_updates()
-            self.queue.popleft()
-
-            self.order_visited.append((curr_row, curr_col))
-            for dir in self.directions:
-                if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
-                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width:
-                    if (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
-                        self.queue.append((curr_row+dir[0], curr_col+dir[1]))
-                        self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
-            break
         return (False, False)

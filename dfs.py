@@ -1,11 +1,5 @@
+from constants import *
 
-NOT_VISITED = 0
-CURR_VISITING = 1
-VISITED_1_STEP_AGO = 2
-VISITED_2_STEPS_AGO = 3
-VISITED_3_STEPS_AGO = 4
-VISITED_A_WHILE_AGO = 5
-FOUND = 6
 
 class DFS:
     def __init__(self, start, target, grid):
@@ -33,6 +27,7 @@ class DFS:
     def one_step(self):
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
+        print(grid_height, grid_width)
         if len(self.visited_set) == grid_height*grid_width:
             return (False, True)
         while self.stack:
@@ -44,11 +39,12 @@ class DFS:
                 self.grid[curr_row][curr_col] = FOUND
                 return (True, True)
             self.visited_set.add((curr_row, curr_col))
+            print("A: ", curr_row, curr_col)
             self.grid[curr_row][curr_col] = CURR_VISITING
             self.order_visited.append((curr_row, curr_col))
             for dir in self.directions:
-                if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_width and \
-                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_height:
+                if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
+                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width:
                     if (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
                         self.stack.append((curr_row+dir[0], curr_col+dir[1]))
             break

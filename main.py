@@ -25,46 +25,7 @@ TODO: Allow them to step through one box at a time with a description of what is
 import pygame
 from currGraphAlgo import CurrGraphAlgorithm
 from animations import button
-
-GRID_SIZE = [1052, 526]
-
-MENU_HEIGHT = 200
-WINDOW_SIZE = [GRID_SIZE[0], GRID_SIZE[1] + MENU_HEIGHT]
-BUTTON_WIDTH = 100
-BUTTON_HEIGHT = 50
-BUTTON_MARGIN = 25
-
-# Grid variables
-WIDTH = 20
-HEIGHT = 20
-MARGIN = 1
-
-ROWS = (GRID_SIZE[1] - MARGIN) // (HEIGHT+MARGIN)
-COLS = (GRID_SIZE[0] - MARGIN) // (WIDTH+MARGIN)
-
-# start and target node variables
-START_COLOR = (208, 229, 245)
-TARGET_COLOR = (47, 93, 128)
-
-NOT_VISITED = 0
-CURR_VISITING = 1
-VISITED_1_STEP_AGO = 2
-VISITED_2_STEPS_AGO = 3
-VISITED_3_STEPS_AGO = 4
-VISITED_A_WHILE_AGO = 5
-FOUND = 6
-
-WHITE = (255,245,238)
-GRID_COLOR = (255, 179, 230)
-COLORS = {}
-COLORS[NOT_VISITED] = WHITE #off-white
-COLORS[CURR_VISITING] = (239,98,159)
-COLORS[VISITED_1_STEP_AGO] = (239,105,159)
-COLORS[VISITED_2_STEPS_AGO] = (239,160,161)
-COLORS[VISITED_3_STEPS_AGO] = (238,190,162)
-COLORS[VISITED_A_WHILE_AGO] = (238,205,163)
-COLORS[FOUND] = (0,205,172)
-
+from constants import *
 
 grid = []
 for row in range(ROWS):
@@ -77,6 +38,7 @@ pygame.init()
 screen = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption("Graph Algorithm Visualizer")
 
+#indicates that the session is still active
 done = False
 
 # Used to manage how fast the screen updates
@@ -156,7 +118,7 @@ while not done:
                               WIDTH,
                               HEIGHT])
             color = COLORS[grid[row][column]]
-            # print(color)
+
             if grid[row][column] == CURR_VISITING:
                 pygame.draw.rect(screen,
                                  color,
@@ -179,7 +141,6 @@ while not done:
                                   WIDTH/2,
                                   HEIGHT/2])
             elif grid[row][column] == VISITED_3_STEPS_AGO:
-                # print("here")
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN + WIDTH/4,
@@ -187,7 +148,6 @@ while not done:
                                   WIDTH*(3/4),
                                   HEIGHT*(3/4)])
             elif grid[row][column] == VISITED_A_WHILE_AGO:
-                # print("here")
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN,
@@ -209,6 +169,12 @@ while not done:
     button(screen, "Start BFS", 2*BUTTON_MARGIN+BUTTON_WIDTH, GRID_SIZE[1] + \
            BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
            curr_alg.update_algorithm, start_pos, target_pos, "BFS")
+    button(screen, "Start Dijkstras", 3*BUTTON_MARGIN+2*BUTTON_WIDTH, GRID_SIZE[1] + \
+           BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
+           curr_alg.update_algorithm, start_pos, target_pos, "DIJKSTRAS")
+    button(screen, "Start A*", 4*BUTTON_MARGIN+3*BUTTON_WIDTH, GRID_SIZE[1] + \
+           BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
+           curr_alg.update_algorithm, start_pos, target_pos, "ASTAR")
 
     # draw start and target nodes
     pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
