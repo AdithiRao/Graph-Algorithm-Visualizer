@@ -26,7 +26,7 @@ import pygame
 from currGraphAlgo import CurrGraphAlgorithm
 from animations import button
 
-GRID_SIZE = [526, 526]
+GRID_SIZE = [1052, 526]
 
 MENU_HEIGHT = 200
 WINDOW_SIZE = [GRID_SIZE[0], GRID_SIZE[1] + MENU_HEIGHT]
@@ -39,8 +39,8 @@ WIDTH = 20
 HEIGHT = 20
 MARGIN = 1
 
-ROWS = (GRID_SIZE[0] - MARGIN) // (HEIGHT+MARGIN)
-COLS = (GRID_SIZE[1] - MARGIN) // (WIDTH+MARGIN)
+ROWS = (GRID_SIZE[1] - MARGIN) // (HEIGHT+MARGIN)
+COLS = (GRID_SIZE[0] - MARGIN) // (WIDTH+MARGIN)
 
 # start and target node variables
 START_COLOR = (208, 229, 245)

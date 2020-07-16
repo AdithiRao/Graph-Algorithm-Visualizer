@@ -1,10 +1,9 @@
-# button starterr code: https://pythonprogramming.net/pygame-button-function-events/?completed=/pygame-button-function/
+# button starter code: https://pythonprogramming.net/pygame-button-function-events/?completed=/pygame-button-function/
 import pygame
-
-GRID_COLOR = (255, 179, 230)
+from constants import TEXT_COLOR
 
 def text_objects(text, font):
-    textSurface = font.render(text, True, GRID_COLOR)
+    textSurface = font.render(text, True, TEXT_COLOR)
     return textSurface, textSurface.get_rect()
 
 def button(screen, msg, x, y, width, height, inactive_color, active_color, action=None, *args):
