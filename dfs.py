@@ -4,7 +4,7 @@ from constants import *
 class DFS:
     def __init__(self, start, target, grid):
         self.visited_set = set()
-        self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
+        self.directions = [(1,0),(0,1),(-1,0),(0,-1)]
         self.order_visited = []
         self.stack = [start]
         self.target = target

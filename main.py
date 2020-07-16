@@ -1,25 +1,30 @@
 #Grid creation citation: http://programarcadegames.com/index.php?lang=en&chapter=array_backed_grids
 
 '''
+@Kanvi
+TODO: Add hover coloring for buttons
+TODO: Make the buttons a little prettier
+TODO: Add ability to add numbers to graph to indicate weights- need to have both positive and negative weights
+      before we can implement more advanced graph search algorithms
+TODO: Dijkstras
+
+@Adithi
 TODO: Need to add arrow that shows path from start to target
+TODO: Fix the alignment of the mini squares (do the math and make sure they are centered in
+      their appropriate boxes)
+TODO: Add ability to add walls- we can also do the prebuilt maze feature
+
+@General
 TODO: When weights are added as a feature, we need to make sure they cannot dfs or bfs
       cannot be clicked
 TODO: Create a README
-TODO: Fix the alignment of the mini squares (do the math and make sure they are centered in
-      their appropriate boxes)
 TODO: Stylize main.py and add comments to other files
-TODO: Add hover coloring for buttons
 TODO: Change the icons for start and end (if possible, or else j make prettier)
-TODO: Make the buttons a little prettier
-TODO: Finish migrating all the constants over to constants.py and refactoring main.py accordingly
 TODO: Make the currently running algorithm reset if either the target or start changes (they
         should be able to pick up and change source and dest while running)
 TODO: Make the number of grid lines an dynamic feature based on rows and cols
 TODO: ^ Based on this, if the window gets resized during the game, the grid should auto-adjust
      (make more/less rows and columns)-- By default the screen should be a rectangle though
-TODO: Add ability to color graph to indicate weights- need to have both positive and negative weights
-      before we can implement more advanced graph search algorithms
-TODO: Add ability to add walls- we can also do the prebuilt maze feature
 TODO: Algos to add: Dijkstras, A*, Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm algorithm
 TODO: Allow them to step through one box at a time with a description of what is going on (what was being
       visited on the previous round)
@@ -193,7 +198,7 @@ while not done:
                        WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
     # Limit frames per second
-    clock.tick(10)
+    clock.tick(20)
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
