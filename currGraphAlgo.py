@@ -16,9 +16,8 @@ class CurrGraphAlgorithm():
             grid[row] = [initial]*COLS
         return grid
 
-    def update_algorithm(self, params):
+    def update_algorithm(self, params, grid):
         (start, target, alg) = params
-        grid = self.newGrid(0)
         self.running = True
         if alg == "Breadth First Search":
             self.instance = BFS(start, target, grid)

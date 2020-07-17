@@ -2,9 +2,7 @@
 
 '''
 @Kanvi
-TODO: add to theme.json file to make a theme for GUI elements
-TODO: Add ability to add numbers to graph to indicate weights- need to have both positive and negative weights
-      before we can implement more advanced graph search algorithms
+TODO: add good theme.json file to make a theme for GUI elements
 TODO: Dijkstras
 
 @Adithi
@@ -13,7 +11,7 @@ TODO: Add ability to add walls- we can also do the prebuilt maze feature
 
 @General
 TODO: When weights are added as a feature, we need to make sure they cannot dfs or bfs
-      cannot be clicked
+      cannot be clicked - i don't think this is necessary, they just won't be considered?
 TODO: Create a README
 TODO: Stylize main.py and add comments to other files
 TODO: Change the icons for start and end (if possible, or else j make prettier)
@@ -57,6 +55,7 @@ start_dragging = False
 target_dragging = False
 algo_selected = False
 adding_weights = False
+adding_walls = True
 (found, alg_done, curr_spath_node, n_node_dir) = (False, False, None, None)
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's Algorithm", "A*"]
@@ -78,7 +77,11 @@ weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_M
                                             BUTTON_SIZE),
                                             text='Add Weights',
                                             manager=manager)
-done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
+weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
+                                            BUTTON_SIZE),
+                                            manager=manager)
+weight_text_entry.set_allowed_characters(['-','1','2','3','4','5','6','7','8','9','0'])
+done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Done Adding Weights',
                                             manager=manager)
@@ -99,19 +102,29 @@ while not done:
 
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
-                    curr_alg.update_algorithm((start_pos, target_pos, algorithms_dropdown.selected_option))
+                    curr_alg.update_algorithm((start_pos, target_pos, algorithms_dropdown.selected_option), grid)
                 if event.ui_element == reset_button:
                     curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
                 if event.ui_element == weight_button:
                     adding_weights = True
+                    adding_walls = False
+                    start_button.disable()
                     weight_button.disable()
                     done_weights_button.enable()
-                if event.ui_element == done_weights_button:
+                if event.ui_element == done_weights_button and weight_text_entry.get_text() != "":
                     adding_weights = False
+                    adding_walls = True
                     weight_button.enable()
+                    start_button.enable()
                     done_weights_button.disable()
+                    for row in range(ROWS):
+                        for col in range(COLS):
+                            if grid[row][col] == TO_WEIGHT:
+                                print(weight_text_entry.get_text())
+                                weights[row][col] = int(weight_text_entry.get_text())
+                    weight_text_entry.set_text("")
                     for row in range(ROWS):
                         grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
 
@@ -126,14 +139,23 @@ while not done:
                 start_offset_x = ((MARGIN + WIDTH) * start_pos[1]) - pos[0]
                 start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
 
-            if (column == target_pos[1] and row == target_pos[0] and not curr_alg.running):
+            elif (column == target_pos[1] and row == target_pos[0] and not curr_alg.running):
                 target_dragging = True
                 target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
                 target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
 
-            if (adding_weights and column < COLS and row < ROWS and column >= 0 and row >= 0):
-                grid[row][column] = TO_WEIGHT
-                weights[row][column] = 2
+            elif (column < COLS and row < ROWS and column >= 0 and row >= 0):
+                if adding_weights:
+                    if grid[row][column] != TO_WEIGHT:
+                        grid[row][column] = TO_WEIGHT
+                    else:
+                        grid[row][column] = NOT_VISITED
+                if adding_walls:
+                    if grid[row][column] != WALL:
+                        grid[row][column] = WALL
+                        weights[row][column] = 0
+                    else:
+                        grid[row][column] = NOT_VISITED
 
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
@@ -192,36 +214,17 @@ while not done:
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
-            color = COLORS[grid[row][column]]
+            
+            cell = grid[row][column]
+            color = COLORS[cell]
 
-            if grid[row][column] == CURR_VISITING:
+            if cell == CURR_VISITING or cell == VISITED_1_STEP_AGO or cell == VISITED_2_STEPS_AGO or cell == VISITED_3_STEPS_AGO:
                 pygame.draw.rect(screen,
                                  color,
-                                 [(MARGIN + WIDTH) * column + MARGIN + (7/16)*WIDTH,
-                                  (MARGIN + HEIGHT) * row + MARGIN + (7/16)*HEIGHT,
-                                  WIDTH/8,
-                                  HEIGHT/8])
-            elif grid[row][column] == VISITED_1_STEP_AGO:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN + (3/8)*WIDTH,
-                                  (MARGIN + HEIGHT) * row + MARGIN + (3/8)*HEIGHT,
-                                  WIDTH/4,
-                                  HEIGHT/4])
-            elif grid[row][column] == VISITED_2_STEPS_AGO:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/3,
-                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/3,
-                                  WIDTH/3,
-                                  HEIGHT/3])
-            elif grid[row][column] == VISITED_3_STEPS_AGO:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/4,
-                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/4,
-                                  WIDTH/2,
-                                  HEIGHT/2])
+                                 [(MARGIN + WIDTH) * column + MARGIN + H_OFFSET[cell],
+                                  (MARGIN + HEIGHT) * row + MARGIN + V_OFFSET[cell],
+                                  H_SIZE[cell],
+                                  V_SIZE[cell]])
             else:
                 pygame.draw.rect(screen,
                                  color,
@@ -265,7 +268,7 @@ while not done:
                        WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
     
     # Limit frames per second
-    clock.tick(20)
+    clock.tick(60)
 
     # Go ahead and update the screen with what we've drawn.
     manager.draw_ui(screen)
