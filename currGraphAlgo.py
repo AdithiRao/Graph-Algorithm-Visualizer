@@ -9,20 +9,16 @@ class CurrGraphAlgorithm():
     def __init__(self):
         self.running = False
 
-    def newGrid(self):
+    def newGrid(self, initial):
         grid = []
         for row in range(ROWS):
             grid.append([])
-            grid[row] = [0]*COLS
-        for row in range(ROWS):
-            for column in range(COLS):
-                color = WHITE
-                color = COLORS[grid[row][column]]
+            grid[row] = [initial]*COLS
         return grid
 
     def update_algorithm(self, params):
         (start, target, alg) = params
-        grid = self.newGrid()
+        grid = self.newGrid(0)
         self.running = True
         if alg == "Breadth First Search":
             self.instance = BFS(start, target, grid)

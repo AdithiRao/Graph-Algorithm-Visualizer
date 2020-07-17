@@ -33,18 +33,12 @@ import pygame_gui
 from constants import *
 from currGraphAlgo import CurrGraphAlgorithm
 
-grid = []
-for row in range(ROWS):
-    grid.append([])
-    grid[row] = [0]*COLS
-
 pygame.init()
 
 screen = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption("Graph Algorithm Visualizer")
 
-manager = pygame_gui.UIManager(WINDOW_SIZE)
-# manager = pygame_gui.UIManager(WINDOW_SIZE, 'theme.json')
+manager = pygame_gui.UIManager(WINDOW_SIZE, 'theme.json')
 
 #indicates that the session is still active
 done = False
@@ -54,6 +48,8 @@ time_elapsed_since_last_action = 0
 clock = pygame.time.Clock()
 
 curr_alg = CurrGraphAlgorithm()
+grid = curr_alg.newGrid(NOT_VISITED) # initialize empty grid
+weights = curr_alg.newGrid(1) # initialize weights
 
 start_pos = (ROWS//2,COLS//3)
 target_pos = (ROWS//2,COLS*2//3)
@@ -73,6 +69,7 @@ start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MA
                                             BUTTON_SIZE),
                                             text='Start!',
                                             manager=manager)
+start_button.disable()                                            
 reset_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Reset',
@@ -85,6 +82,8 @@ done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BU
                                             BUTTON_SIZE),
                                             text='Done Adding Weights',
                                             manager=manager)
+done_weights_button.disable()
+
 # -------- Main Program Loop -----------
 while not done:
     time_delta = clock.tick(60)/1000.0
@@ -96,16 +95,25 @@ while not done:
             if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                 if event.ui_element == algorithms_dropdown:
                     algo_selected = True
+                    start_button.enable()
+
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
                     curr_alg.update_algorithm((start_pos, target_pos, algorithms_dropdown.selected_option))
                 if event.ui_element == reset_button:
                     curr_alg = CurrGraphAlgorithm()
-                    grid = curr_alg.newGrid()
+                    grid = curr_alg.newGrid(NOT_VISITED)
+                    weights = curr_alg.newGrid(1)
                 if event.ui_element == weight_button:
                     adding_weights = True
+                    weight_button.disable()
+                    done_weights_button.enable()
                 if event.ui_element == done_weights_button:
                     adding_weights = False
+                    weight_button.enable()
+                    done_weights_button.disable()
+                    for row in range(ROWS):
+                        grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
@@ -123,8 +131,9 @@ while not done:
                 target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
                 target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
 
-            # if (adding_weights):
-            #     grid[row][column] = WEIGHTED
+            if (adding_weights and column < COLS and row < ROWS and column >= 0 and row >= 0):
+                grid[row][column] = TO_WEIGHT
+                weights[row][column] = 2
 
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
@@ -156,6 +165,11 @@ while not done:
 
     if curr_alg.running:
         if found and not alg_done:
+            
+            # set all cells that were visited to same color
+            for row in range(ROWS):
+                grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND else x for x in grid[row]]
+            
             if time_elapsed_since_last_action > 0.05:
                 (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
                 time_elapsed_since_last_action = 0
@@ -165,9 +179,8 @@ while not done:
         if alg_done:
             curr_alg.algorithm_done()
 
-
     # Set the screen background
-    screen.fill(GRID_COLOR)
+    screen.fill(BACKGROUND_COLOR)
 
     # Draw the grid
     for row in range(ROWS):
@@ -209,21 +222,7 @@ while not done:
                                   (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/4,
                                   WIDTH/2,
                                   HEIGHT/2])
-            elif grid[row][column] == VISITED_A_WHILE_AGO:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN,
-                                  (MARGIN + HEIGHT) * row + MARGIN,
-                                  WIDTH,
-                                  HEIGHT])
-            elif grid[row][column] == FOUND:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN,
-                                  (MARGIN + HEIGHT) * row + MARGIN,
-                                  WIDTH,
-                                  HEIGHT])
-            elif grid[row][column] == SHORTEST_PATH_NODE:
+            else:
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN,
@@ -264,6 +263,7 @@ while not done:
                        WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
     pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
                        WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
+    
     # Limit frames per second
     clock.tick(20)
 
