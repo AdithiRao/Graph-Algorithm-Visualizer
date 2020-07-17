@@ -50,6 +50,7 @@ manager = pygame_gui.UIManager(WINDOW_SIZE)
 done = False
 
 # Used to manage how fast the screen updates
+time_elapsed_since_last_action = 0
 clock = pygame.time.Clock()
 
 curr_alg = CurrGraphAlgorithm()
@@ -60,7 +61,7 @@ start_dragging = False
 target_dragging = False
 algo_selected = False
 adding_weights = False
-curr_spath_node = None
+(found, alg_done, curr_spath_node, n_node_dir) = (False, False, None, None)
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's Algorithm", "A*"]
 algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
@@ -151,9 +152,15 @@ while not done:
         manager.process_events(event)
 
     manager.update(time_delta)
+    time_elapsed_since_last_action += time_delta
 
     if curr_alg.running:
-        (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
+        if found and not alg_done:
+            if time_elapsed_since_last_action > 0.05:
+                (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
+                time_elapsed_since_last_action = 0
+        else:
+            (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
         grid = curr_alg.instance.grid
         if alg_done:
             curr_alg.algorithm_done()
