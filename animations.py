@@ -1,6 +1,6 @@
 # button starter code: https://pythonprogramming.net/pygame-button-function-events/?completed=/pygame-button-function/
 import pygame
-from constants import TEXT_COLOR
+from constants import *
 
 def text_objects(text, font):
     textSurface = font.render(text, True, TEXT_COLOR)

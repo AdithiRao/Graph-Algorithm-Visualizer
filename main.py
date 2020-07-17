@@ -2,9 +2,7 @@
 
 '''
 @Kanvi
-TODO: Add hover coloring for buttons/ see if we could possibly still try a drop down instead of buttons
-      (the buttons just look really clunky rn)
-TODO: Make the buttons a little prettier
+TODO: add to theme.json file to make a theme for GUI elements
 TODO: Add ability to add numbers to graph to indicate weights- need to have both positive and negative weights
       before we can implement more advanced graph search algorithms
 TODO: Dijkstras
@@ -32,9 +30,10 @@ TODO: Allow them to step through one box at a time with a description of what is
 
 '''
 import pygame
-from currGraphAlgo import CurrGraphAlgorithm
-from animations import button
+import pygame_gui
+
 from constants import *
+from currGraphAlgo import CurrGraphAlgorithm
 
 grid = []
 for row in range(ROWS):
@@ -43,9 +42,11 @@ for row in range(ROWS):
 
 pygame.init()
 
-
 screen = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption("Graph Algorithm Visualizer")
+
+manager = pygame_gui.UIManager(WINDOW_SIZE)
+# manager = pygame_gui.UIManager(WINDOW_SIZE, 'theme.json')
 
 #indicates that the session is still active
 done = False
@@ -55,33 +56,75 @@ clock = pygame.time.Clock()
 
 curr_alg = CurrGraphAlgorithm()
 
-start_pos = (0,0)
-target_pos = (12,10)
+start_pos = (ROWS//2,COLS//3)
+target_pos = (ROWS//2,COLS*2//3)
 start_dragging = False
 target_dragging = False
+algo_selected = False
+adding_weights = False
 
+algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's Algorithm", "A*"]
+algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list, 
+                        "Choose an Algorithm!", 
+                        pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
+                        manager=manager)     
 
-
+start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_MARGIN), 
+                                            BUTTON_SIZE),
+                                            text='Start!',
+                                            manager=manager)                                   
+reset_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), 
+                                            BUTTON_SIZE),
+                                            text='Reset',
+                                            manager=manager) 
+weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN), 
+                                            BUTTON_SIZE),
+                                            text='Add Weights',
+                                            manager=manager)
+done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN), 
+                                            BUTTON_SIZE),
+                                            text='Done Adding Weights',
+                                            manager=manager)
 # -------- Main Program Loop -----------
 while not done:
+    time_delta = clock.tick(60)/1000.0
     for event in pygame.event.get():  # User did some action
         if event.type == pygame.QUIT:  # If user clicked close
             done = True
+        
+        elif event.type == pygame.USEREVENT:
+            if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                if event.ui_element == algorithms_dropdown:
+                    algo_selected = True
+            if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == start_button and algo_selected:
+                    curr_alg.update_algorithm((start_pos, target_pos, algorithms_dropdown.selected_option))
+                if event.ui_element == reset_button:
+                    curr_alg = CurrGraphAlgorithm()
+                    grid = curr_alg.newGrid()
+                if event.ui_element == weight_button:
+                    adding_weights = True
+                if event.ui_element == done_weights_button:
+                    adding_weights = False
+        
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             column = pos[0] // (WIDTH + MARGIN)
             row = pos[1] // (HEIGHT + MARGIN)
             print("Click ", pos, "Grid coordinates: ", row, column)
 
-            if (column == start_pos[1] and row == start_pos[0]):
+            if (column == start_pos[1] and row == start_pos[0] and not curr_alg.running):
                 start_dragging = True
                 start_offset_x = ((MARGIN + WIDTH) * start_pos[1]) - pos[0]
                 start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
 
-            if (column == target_pos[1] and row == target_pos[0]):
+            if (column == target_pos[1] and row == target_pos[0] and not curr_alg.running):
                 target_dragging = True
                 target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
                 target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
+            
+            if (adding_weights):
+                grid[row][column] = WEIGHTED
 
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
@@ -106,6 +149,10 @@ while not done:
                 else:
                     target_pos = temp
 
+        manager.process_events(event)
+
+    manager.update(time_delta)
+    
     if curr_alg.running:
         (found, alg_done) = curr_alg.instance.one_step()
         grid = curr_alg.instance.grid
@@ -177,21 +224,7 @@ while not done:
                                   (MARGIN + HEIGHT) * row + MARGIN,
                                   WIDTH,
                                   HEIGHT])
-
-    # Draw menu buttons
-    button(screen, "Start DFS", BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN, \
-           BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
-           curr_alg.update_algorithm, start_pos, target_pos, "DFS")
-    button(screen, "Start BFS", 2*BUTTON_MARGIN+BUTTON_WIDTH, GRID_SIZE[1] + \
-           BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
-           curr_alg.update_algorithm, start_pos, target_pos, "BFS")
-    button(screen, "Start Dijkstras", 3*BUTTON_MARGIN+2*BUTTON_WIDTH, GRID_SIZE[1] + \
-           BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
-           curr_alg.update_algorithm, start_pos, target_pos, "DIJKSTRAS")
-    button(screen, "Start A*", 4*BUTTON_MARGIN+3*BUTTON_WIDTH, GRID_SIZE[1] + \
-           BUTTON_MARGIN, BUTTON_WIDTH, BUTTON_HEIGHT,  WHITE, WHITE, \
-           curr_alg.update_algorithm, start_pos, target_pos, "ASTAR")
-
+    
     # draw start and target nodes
     pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
                        WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
@@ -202,6 +235,7 @@ while not done:
     clock.tick(20)
 
     # Go ahead and update the screen with what we've drawn.
+    manager.draw_ui(screen)
     pygame.display.flip()
 
 

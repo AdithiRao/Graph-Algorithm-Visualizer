@@ -24,13 +24,13 @@ class CurrGraphAlgorithm():
         (start, target, alg) = params
         grid = self.newGrid()
         self.running = True
-        if alg == "BFS":
+        if alg == "Breadth First Search":
             self.instance = BFS(start, target, grid)
-        elif alg == "DFS":
+        elif alg == "Depth First Search":
             self.instance = DFS(start, target, grid)
-        elif alg == "DIJKSTRAS":
+        elif alg == "Dijkstra's":
             self.instance = DIJKSTRAS(start, target, grid)
-        elif alg == "ASTAR":
+        elif alg == "A*":
             self.instance = ASTAR(start, target, grid)
 
     def algorithm_done(self):
