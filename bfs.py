@@ -32,8 +32,11 @@ class BFS:
         if len(self.shortest_path) > 0:
             (node_x, node_y) = self.shortest_path.pop()
             self.grid[node_x][node_y] = SHORTEST_PATH_NODE
-            return (True, False)
-        return (True, True)
+            if self.shortest_path:
+                (n_node_x, n_node_y) = self.shortest_path[-1]
+                return (True, False, (node_x, node_y), (n_node_x-node_x, n_node_y-node_y))
+            return (True, False, (node_x, node_y), None)
+        return (True, True, None, None)
 
     def grid_updates(self):
         if self.VISITED_A_WHILE_AGO:
@@ -60,21 +63,19 @@ class BFS:
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
         if self.drawing_shortest_path:
-            (found, alg_done) = self.step_through_shortest_path()
-            return (found, alg_done)
+            return self.step_through_shortest_path()
         if len(self.visited_set) == grid_height*grid_width:
-            return (False, True)
+            return (False, True, None, None)
         while self.queue:
             curr_row, curr_col = self.queue[0]
             if self.queue[0] == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
                 self.drawing_shortest_path = True
-                return (True, False)
+                return (True, False, None, None)
             self.grid_updates()
             self.queue.popleft()
 
-            #self.order_visited.append((curr_row, curr_col))
             for dir in self.directions:
                 if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
                 curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width:
@@ -83,4 +84,4 @@ class BFS:
                         self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
                         self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
             break
-        return (False, False)
+        return (False, False, None, None)

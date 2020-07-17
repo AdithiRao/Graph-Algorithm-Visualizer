@@ -8,9 +8,7 @@ TODO: Add ability to add numbers to graph to indicate weights- need to have both
 TODO: Dijkstras
 
 @Adithi
-TODO: Need to add arrow that shows path from start to target
-TODO: Fix the alignment of the mini squares (do the math and make sure they are centered in
-      their appropriate boxes)
+TODO: Improve color scheme
 TODO: Add ability to add walls- we can also do the prebuilt maze feature
 
 @General
@@ -62,26 +60,27 @@ start_dragging = False
 target_dragging = False
 algo_selected = False
 adding_weights = False
+curr_spath_node = None
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's Algorithm", "A*"]
-algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list, 
-                        "Choose an Algorithm!", 
+algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
+                        "Choose an Algorithm!",
                         pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
-                        manager=manager)     
+                        manager=manager)
 
-start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_MARGIN), 
+start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Start!',
-                                            manager=manager)                                   
-reset_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), 
+                                            manager=manager)
+reset_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Reset',
-                                            manager=manager) 
-weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN), 
+                                            manager=manager)
+weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Add Weights',
                                             manager=manager)
-done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN), 
+done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Done Adding Weights',
                                             manager=manager)
@@ -91,7 +90,7 @@ while not done:
     for event in pygame.event.get():  # User did some action
         if event.type == pygame.QUIT:  # If user clicked close
             done = True
-        
+
         elif event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                 if event.ui_element == algorithms_dropdown:
@@ -106,7 +105,7 @@ while not done:
                     adding_weights = True
                 if event.ui_element == done_weights_button:
                     adding_weights = False
-        
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             column = pos[0] // (WIDTH + MARGIN)
@@ -122,9 +121,9 @@ while not done:
                 target_dragging = True
                 target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
                 target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
-            
-            if (adding_weights):
-                grid[row][column] = WEIGHTED
+
+            # if (adding_weights):
+            #     grid[row][column] = WEIGHTED
 
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
@@ -152,9 +151,9 @@ while not done:
         manager.process_events(event)
 
     manager.update(time_delta)
-    
+
     if curr_alg.running:
-        (found, alg_done) = curr_alg.instance.one_step()
+        (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
         grid = curr_alg.instance.grid
         if alg_done:
             curr_alg.algorithm_done()
@@ -178,31 +177,31 @@ while not done:
             if grid[row][column] == CURR_VISITING:
                 pygame.draw.rect(screen,
                                  color,
-                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/2,
-                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2,
+                                 [(MARGIN + WIDTH) * column + MARGIN + (7/16)*WIDTH,
+                                  (MARGIN + HEIGHT) * row + MARGIN + (7/16)*HEIGHT,
+                                  WIDTH/8,
+                                  HEIGHT/8])
+            elif grid[row][column] == VISITED_1_STEP_AGO:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN + (3/8)*WIDTH,
+                                  (MARGIN + HEIGHT) * row + MARGIN + (3/8)*HEIGHT,
                                   WIDTH/4,
                                   HEIGHT/4])
-            elif grid[row][column] == VISITED_1_STEP_AGO:
+            elif grid[row][column] == VISITED_2_STEPS_AGO:
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN + WIDTH/3,
                                   (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/3,
                                   WIDTH/3,
                                   HEIGHT/3])
-            elif grid[row][column] == VISITED_2_STEPS_AGO:
+            elif grid[row][column] == VISITED_3_STEPS_AGO:
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN + WIDTH/4,
                                   (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/4,
                                   WIDTH/2,
                                   HEIGHT/2])
-            elif grid[row][column] == VISITED_3_STEPS_AGO:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN + WIDTH/4,
-                                  (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/4,
-                                  WIDTH*(3/4),
-                                  HEIGHT*(3/4)])
             elif grid[row][column] == VISITED_A_WHILE_AGO:
                 pygame.draw.rect(screen,
                                  color,
@@ -224,13 +223,40 @@ while not done:
                                   (MARGIN + HEIGHT) * row + MARGIN,
                                   WIDTH,
                                   HEIGHT])
-    
+
+            if curr_spath_node and n_node_dir:
+                (curr_spath_row, curr_spath_col) = curr_spath_node
+                start_x_pos = (MARGIN + WIDTH)*curr_spath_col+ MARGIN
+                start_y_pos = (MARGIN + HEIGHT) * curr_spath_row + MARGIN
+                #right arrow
+                if n_node_dir == (0, 1):
+                    pygame.draw.polygon(screen, ARROW_COLOR,
+                    ((start_x_pos, start_y_pos),
+                    (start_x_pos+WIDTH, start_y_pos+HEIGHT//2),
+                    (start_x_pos, start_y_pos+HEIGHT)))
+                elif n_node_dir == (0, -1):
+                    pygame.draw.polygon(screen, ARROW_COLOR,
+                    ((start_x_pos+WIDTH, start_y_pos),
+                    (start_x_pos, start_y_pos+HEIGHT//2),
+                    (start_x_pos+WIDTH, start_y_pos+HEIGHT)))
+                #up
+                elif n_node_dir == (-1, 0):
+                    pygame.draw.polygon(screen, ARROW_COLOR,
+                    ((start_x_pos, start_y_pos+HEIGHT),
+                    (start_x_pos+WIDTH//2, start_y_pos),
+                    (start_x_pos+WIDTH, start_y_pos+HEIGHT)))
+                elif n_node_dir == (1, 0):
+                    pygame.draw.polygon(screen, ARROW_COLOR,
+                    ((start_x_pos, start_y_pos),
+                    (start_x_pos+WIDTH//2, start_y_pos+HEIGHT),
+                    (start_x_pos+WIDTH, start_y_pos)))
+
+
     # draw start and target nodes
     pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
                        WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
     pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
                        WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
-
     # Limit frames per second
     clock.tick(20)
 
