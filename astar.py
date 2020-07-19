@@ -1,23 +1,46 @@
+from copy import deepcopy
+from heapq import heappush, heappop, heapify
 from constants import *
-from collections import deque
 
 
 class ASTAR:
     '''
     Summary of algorithm:
     '''
-    def __init__(self, start, target, grid):
+    def __init__(self, start, target, grid, weights, heuristic):
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
-        self.order_visited = []
-        self.queue = deque()
-        self.queue.append(start)
+        self.shortest_path = []
+        self.pq = []
+        heappush(self.pq, (0, start))
         self.VISITED_1_STEP_AGO = None
         self.VISITED_2_STEPS_AGO = None
         self.VISITED_3_STEPS_AGO = None
         self.VISITED_A_WHILE_AGO = None
+        self.parents = deepcopy(grid) #will store the coordinates of the parent
+        self.weights = weights
+        self.heuristic = heuristic
         self.target = target
         self.grid = grid
+        self.start = start
+        self.drawing_shortest_path = False
+
+    def generate_shortest_path(self):
+        node_x, node_y = self.target
+        while (node_x, node_y) != self.start:
+            self.shortest_path.append((node_x, node_y))
+            (node_x, node_y) = self.parents[node_x][node_y]
+        self.shortest_path.append((node_x, node_y))
+
+    def step_through_shortest_path(self):
+        if len(self.shortest_path) > 0:
+            (node_x, node_y) = self.shortest_path.pop()
+            self.grid[node_x][node_y] = SHORTEST_PATH_NODE
+            if self.shortest_path:
+                (n_node_x, n_node_y) = self.shortest_path[-1]
+                return (True, False, (node_x, node_y), (n_node_x-node_x, n_node_y-node_y))
+            return (True, False, (node_x, node_y), None)
+        return (True, True, None, None)
 
     def grid_updates(self):
         if self.VISITED_A_WHILE_AGO:
@@ -35,10 +58,38 @@ class ASTAR:
             (row, col) = self.VISITED_1_STEP_AGO
             self.grid[row][col] = VISITED_1_STEP_AGO
             self.VISITED_2_STEPS_AGO = self.VISITED_1_STEP_AGO
-        if self.queue:
-            (row, col) = self.queue[0]
+        if self.pq:
+            (weight, (row, col)) = self.pq[0]
             self.grid[row][col] = CURR_VISITING
-            self.VISITED_1_STEP_AGO = self.queue[0]
+            self.VISITED_1_STEP_AGO = (row, col)
 
+    # Returns (found, alg_done, curr_spath_node, n_node_dir)
     def one_step(self):
-        return (False, False)
+        grid_height = len(self.grid)
+        grid_width = len(self.grid[0])
+        if self.drawing_shortest_path:
+            return self.step_through_shortest_path()
+        if len(self.pq) == 0:
+            return (False, True, None, None)
+        if self.pq:
+            curr_weight, (curr_row, curr_col) = self.pq[0]
+            if (curr_row, curr_col) == self.target:
+                self.grid[curr_row][curr_col] = FOUND
+                self.generate_shortest_path()
+                self.drawing_shortest_path = True
+                return (True, False, None, None)
+            self.grid_updates()
+            heappop(self.pq)
+            for dir in self.directions:
+                if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
+                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width and \
+                (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set \
+                and self.weights[curr_row+dir[0]][curr_col+dir[1]] != 0:
+                    el_weight = self.weights[curr_row+dir[0]][curr_col+dir[1]] +\
+                                curr_weight + self.heuristic(curr_row+dir[0], \
+                                curr_col+dir[1])
+                    heappush(self.pq, (el_weight, (curr_row+dir[0], curr_col+dir[1])))
+                    self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
+                    self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
+
+        return (False, False, None, None)

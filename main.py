@@ -6,8 +6,13 @@ TODO: add good theme.json file to make a theme for GUI elements
 TODO: Dijkstras
 
 @Adithi
-TODO: Improve color scheme
 TODO: Add ability to add walls- we can also do the prebuilt maze feature
+TODO: Drag to highlight and enter weights into cells
+TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
+      If weights are added- don't allow bfs or dfs to be added
+      When the algorith chosen is dijkstras- all negative weights need to
+TODO: Given that BFS, DFS and dijkstra find the shortest path to every node,
+      there should be a way to auto calculate if the node was already visited
 
 @General
 TODO: When weights are added as a feature, we need to make sure they cannot dfs or bfs
@@ -58,7 +63,8 @@ adding_weights = False
 adding_walls = True
 (found, alg_done, curr_spath_node, n_node_dir) = (False, False, None, None)
 
-algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's Algorithm", "A*"]
+algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's", "A*: Euclidean Distance",
+                    "A*: Manhattan Distance"]
 algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
                         "Choose an Algorithm!",
                         pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
@@ -68,7 +74,7 @@ start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MA
                                             BUTTON_SIZE),
                                             text='Start!',
                                             manager=manager)
-start_button.disable()                                            
+start_button.disable()
 reset_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Reset',
@@ -102,7 +108,11 @@ while not done:
 
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
-                    curr_alg.update_algorithm((start_pos, target_pos, algorithms_dropdown.selected_option), grid)
+                    grid = curr_alg.newGrid(NOT_VISITED)
+                    #weights = curr_alg.newGrid(1)
+                    curr_alg.update_algorithm((start_pos, target_pos,
+                                                algorithms_dropdown.selected_option),
+                                                grid, weights)
                 if event.ui_element == reset_button:
                     curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
@@ -125,8 +135,8 @@ while not done:
                                 print(weight_text_entry.get_text())
                                 weights[row][col] = int(weight_text_entry.get_text())
                     weight_text_entry.set_text("")
-                    for row in range(ROWS):
-                        grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
+                    # for row in range(ROWS):
+                    #     grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
@@ -187,11 +197,12 @@ while not done:
 
     if curr_alg.running:
         if found and not alg_done:
-            
+
             # set all cells that were visited to same color
             for row in range(ROWS):
                 grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND else x for x in grid[row]]
-            
+
+            # We are currently drawing the shortest path
             if time_elapsed_since_last_action > 0.05:
                 (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
                 time_elapsed_since_last_action = 0
@@ -214,7 +225,7 @@ while not done:
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
-            
+
             cell = grid[row][column]
             color = COLORS[cell]
 
@@ -266,7 +277,7 @@ while not done:
                        WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
     pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
                        WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
-    
+
     # Limit frames per second
     clock.tick(60)
 

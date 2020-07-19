@@ -1,4 +1,4 @@
-from enum import Enum
+import math
 from bfs import BFS
 from dfs import DFS
 from dijkstras import DIJKSTRAS
@@ -16,7 +16,7 @@ class CurrGraphAlgorithm():
             grid[row] = [initial]*COLS
         return grid
 
-    def update_algorithm(self, params, grid):
+    def update_algorithm(self, params, grid, weights):
         (start, target, alg) = params
         self.running = True
         if alg == "Breadth First Search":
@@ -24,9 +24,13 @@ class CurrGraphAlgorithm():
         elif alg == "Depth First Search":
             self.instance = DFS(start, target, grid)
         elif alg == "Dijkstra's":
-            self.instance = DIJKSTRAS(start, target, grid)
-        elif alg == "A*":
-            self.instance = ASTAR(start, target, grid)
+            self.instance = DIJKSTRAS(start, target, grid, weights)
+        elif alg == "A*: Euclidean Distance":
+            heuristic = lambda x,y: math.sqrt((target[0]-x)**2 + (target[1]-y)**2)
+            self.instance = ASTAR(start, target, grid, weights, heuristic)
+        elif alg == "A*: Manhattan Distance":
+            heuristic = lambda x,y: math.sqrt((target[0]-x)**2 + (target[1]-y)**2)
+            self.instance = ASTAR(start, target, grid, weights, heuristic)
 
     def algorithm_done(self):
         self.running = False

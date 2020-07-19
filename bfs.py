@@ -7,7 +7,6 @@ class BFS:
     def __init__(self, start, target, grid):
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
-        #self.order_visited = []
         self.queue = deque()
         self.start = start
         self.queue.append(start)
@@ -78,10 +77,10 @@ class BFS:
 
             for dir in self.directions:
                 if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
-                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width:
-                    if (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
-                        self.queue.append((curr_row+dir[0], curr_col+dir[1]))
-                        self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
-                        self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
+                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width and \
+                (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
+                    self.queue.append((curr_row+dir[0], curr_col+dir[1]))
+                    self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
+                    self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
             break
         return (False, False, None, None)
