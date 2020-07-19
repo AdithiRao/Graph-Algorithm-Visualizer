@@ -13,6 +13,7 @@ TODO: Adithi got confused by how to clear weights, I don't think we should be
       can change them, but I think this separation of concerns is important
 
 @Adithi
+TODO: Double check A*
 TODO: Add an info box that shows up on the screen describing every algorithm a bit
       and the current step
 TODO: Bellman Ford, Johnsons
@@ -63,6 +64,7 @@ manager = pygame_gui.UIManager(WINDOW_SIZE, 'theme.json')
 #indicates that the session is still active
 done = False
 
+
 # Used to manage how fast the screen updates
 time_elapsed_since_last_action = 0
 clock = pygame.time.Clock()
@@ -78,10 +80,12 @@ target_dragging = False
 algo_selected = False
 adding_weights = False
 adding_walls = True
+speed = 0.001
+step_to_be_made = False
 (found, alg_done, curr_spath_node, n_node_dir) = (False, False, None, None)
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's", "A*: Euclidean Distance",
-                    "A*: Manhattan Distance"]
+                    "A*: Manhattan Distance", "Belmann Ford", "Johnsons"]
 algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
                         "Choose an Algorithm!",
                         pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
@@ -109,11 +113,18 @@ clear_path_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTT
                                             text='Clear Path',
                                             manager=manager)
 
-speeds_list = ["Speed: Fast", "Speed: Medium", "Speed: Slow", "Speed: One Step at a time"]
-speeds_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(speeds_list,
-                        "Speed: Fast",
-                        pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
-                        manager=manager)
+
+speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygame.Rect((BUTTON_MARGIN*3
+                                    + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
+                                    start_value=0.001,
+                                    value_range=(0.1, 0.005),
+                                    manager = manager)
+step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
+                                                    GRID_SIZE[1] + BUTTON_MARGIN),
+                                                    BUTTON_SIZE),
+                                                    text='Step',
+                                                    manager=manager)
+step_button.hide()
 weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Add Weights',
@@ -141,8 +152,11 @@ while not done:
                     algo_selected = True
                     start_button.enable()
 
-                if event.ui_element == speeds_dropdown:
-                    pass
+            speed = speed_button.get_current_value()
+            if speed == 0.1:
+                step_button.show()
+            else:
+                step_button.hide()
 
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
@@ -178,6 +192,8 @@ while not done:
                     weight_text_entry.set_text("")
                     for row in range(ROWS):
                         grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
+                if event.ui_element == step_button:
+                    step_to_be_made = True
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
@@ -235,8 +251,7 @@ while not done:
 
     manager.update(time_delta)
     time_elapsed_since_last_action += time_delta
-
-    if curr_alg.running:
+    if curr_alg.running and time_elapsed_since_last_action > speed:
         if found and not alg_done:
 
             # set all cells that were visited to same color
@@ -248,7 +263,13 @@ while not done:
                 (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
                 time_elapsed_since_last_action = 0
         else:
-            (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
+            if speed != 0.1:
+                (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
+                time_elapsed_since_last_action = 0
+            elif step_to_be_made:
+                (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
+                step_to_be_made = False
+
         grid = curr_alg.instance.grid
         if alg_done:
             curr_alg.algorithm_done()
@@ -320,7 +341,7 @@ while not done:
                        WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
     # Limit frames per second
-    clock.tick(60)
+    clock.tick(100)
 
     # Go ahead and update the screen with what we've drawn.
     manager.draw_ui(screen)
