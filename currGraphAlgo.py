@@ -29,7 +29,8 @@ class CurrGraphAlgorithm():
             heuristic = lambda x,y: math.sqrt((target[0]-x)**2 + (target[1]-y)**2)
             self.instance = ASTAR(start, target, grid, weights, heuristic)
         elif alg == "A*: Manhattan Distance":
-            heuristic = lambda x,y: math.sqrt((target[0]-x)**2 + (target[1]-y)**2)
+            print("here")
+            heuristic = lambda x,y: abs(target[0]-x) + abs(target[1]-y)
             self.instance = ASTAR(start, target, grid, weights, heuristic)
 
     def algorithm_done(self):
