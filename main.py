@@ -2,21 +2,38 @@
 
 '''
 @Kanvi
+TODO: Fix the weight functionality so that numbers show up
+TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
-TODO: Dijkstras
+TODO: Swarm, greedy bfs, bidirectional swarm
+TODO: Adithi got confused by how to clear weights, I don't think we should be
+      using grid to represent both weights/walls and the searching. I thought
+      that's why we made the new weights matrix. Look at my logic for the
+      new clear buttons and try to make them work if you can! Otherwise I
+      can change them, but I think this separation of concerns is important
 
 @Adithi
+TODO: Add an info box that shows up on the screen describing every algorithm a bit
+      and the current step
+TODO: Bellman Ford, Johnsons
+TODO: More buttons: Clear Everything, Clear Walls and Weights, Clear Path
+TODO: Finish implementing speeds
+TODO: Ability to step through one step at a time- a new button should show up
+      if they choose this option (a + or something)
+TODO: Send a notification if negative weights are on the graph when not running
+      one of the algos that can handle negative edges
 TODO: Add ability to add walls- we can also do the prebuilt maze feature
-TODO: Drag to highlight and enter weights into cells
 TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
       If weights are added- don't allow bfs or dfs to be added
-      When the algorith chosen is dijkstras- all negative weights need to
-TODO: Given that BFS, DFS and dijkstra find the shortest path to every node,
-      there should be a way to auto calculate if the node was already visited
+      When the algorith chosen is dijkstras- all negative weights need to be removed
+TODO: Given that most find the shortest path to every node,
+      there should be a way to auto calculate when the target gets moved around
 
 @General
 TODO: When weights are added as a feature, we need to make sure they cannot dfs or bfs
       cannot be clicked - i don't think this is necessary, they just won't be considered?
+      - Well technically that would be incorrect cuz those algos dont work on weighted
+      graphs so it could confuse a user
 TODO: Create a README
 TODO: Stylize main.py and add comments to other files
 TODO: Change the icons for start and end (if possible, or else j make prettier)
@@ -25,7 +42,7 @@ TODO: Make the currently running algorithm reset if either the target or start c
 TODO: Make the number of grid lines an dynamic feature based on rows and cols
 TODO: ^ Based on this, if the window gets resized during the game, the grid should auto-adjust
      (make more/less rows and columns)-- By default the screen should be a rectangle though
-TODO: Algos to add: Dijkstras, A*, Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm algorithm
+TODO: Algos to add: Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm algorithm
 TODO: Allow them to step through one box at a time with a description of what is going on (what was being
       visited on the previous round)
 
@@ -75,10 +92,28 @@ start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MA
                                             text='Start!',
                                             manager=manager)
 start_button.disable()
-reset_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN),
+
+clear_all_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN,
+                                            GRID_SIZE[1] + 2*BUTTON_HEIGHT + 3*BUTTON_MARGIN),
                                             BUTTON_SIZE),
-                                            text='Reset',
+                                            text='Clear All',
                                             manager=manager)
+clear_weights_walls_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH,
+                                            GRID_SIZE[1] + 2*BUTTON_HEIGHT + 3*BUTTON_MARGIN),
+                                            BUTTON_SIZE),
+                                            text='Clear Weights/Walls',
+                                            manager=manager)
+clear_path_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2,
+                                            GRID_SIZE[1] + 2*BUTTON_HEIGHT + 3*BUTTON_MARGIN),
+                                            BUTTON_SIZE),
+                                            text='Clear Path',
+                                            manager=manager)
+
+speeds_list = ["Speed: Fast", "Speed: Medium", "Speed: Slow", "Speed: One Step at a time"]
+speeds_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(speeds_list,
+                        "Speed: Fast",
+                        pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
+                        manager=manager)
 weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
                                             BUTTON_SIZE),
                                             text='Add Weights',
@@ -106,16 +141,22 @@ while not done:
                     algo_selected = True
                     start_button.enable()
 
+                if event.ui_element == speeds_dropdown:
+                    pass
+
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
                     grid = curr_alg.newGrid(NOT_VISITED)
-                    #weights = curr_alg.newGrid(1)
                     curr_alg.update_algorithm((start_pos, target_pos,
                                                 algorithms_dropdown.selected_option),
                                                 grid, weights)
-                if event.ui_element == reset_button:
+                if event.ui_element == clear_all_button:
                     curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
+                    weights = curr_alg.newGrid(1)
+                if event.ui_element == clear_path_button:
+                    grid = curr_alg.newGrid(NOT_VISITED)
+                if event.ui_element == clear_weights_walls_button:
                     weights = curr_alg.newGrid(1)
                 if event.ui_element == weight_button:
                     adding_weights = True
@@ -135,8 +176,8 @@ while not done:
                                 print(weight_text_entry.get_text())
                                 weights[row][col] = int(weight_text_entry.get_text())
                     weight_text_entry.set_text("")
-                    # for row in range(ROWS):
-                    #     grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
+                    for row in range(ROWS):
+                        grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
