@@ -20,9 +20,9 @@ class CurrGraphAlgorithm():
         (start, target, alg) = params
         self.running = True
         if alg == "Breadth First Search":
-            self.instance = BFS(start, target, grid)
+            self.instance = BFS(start, target, grid, weights) #weights will j be walls
         elif alg == "Depth First Search":
-            self.instance = DFS(start, target, grid)
+            self.instance = DFS(start, target, grid, weights) #weights will j be walls
         elif alg == "Dijkstra's":
             self.instance = DIJKSTRAS(start, target, grid, weights)
         elif alg == "A*: Euclidean Distance":

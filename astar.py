@@ -24,8 +24,6 @@ class ASTAR:
         self.grid = grid
         self.start = start
         self.drawing_shortest_path = False
-        print("Start", start)
-        print("Target", target)
 
     def generate_shortest_path(self):
         node_x, node_y = self.target
@@ -75,8 +73,6 @@ class ASTAR:
             return (False, True, None, None)
         if self.pq:
             _, (curr_row, curr_col), curr_weight = self.pq[0]
-            print(curr_weight)
-            print(curr_row, curr_col)
             if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()

@@ -2,7 +2,7 @@ from constants import *
 
 
 class DFS:
-    def __init__(self, start, target, grid):
+    def __init__(self, start, target, grid, walls):
         self.visited_set = set()
         self.directions = [(1,0),(0,1),(-1,0),(0,-1)]
         self.order_visited = []
@@ -10,6 +10,7 @@ class DFS:
         self.target = target
         self.grid = grid
         self.drawing_shortest_path = False
+        self.walls = walls
 
     def step_through_shortest_path(self):
         if len(self.order_visited) > 0:
@@ -57,8 +58,9 @@ class DFS:
             self.order_visited.append((curr_row, curr_col))
             for dir in self.directions:
                 if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
-                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width:
-                    if (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
+                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width \
+                and self.walls[curr_row+dir[0]][curr_col+dir[1]] != 0 \
+                and (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
                         self.stack.append((curr_row+dir[0], curr_col+dir[1]))
             break
         return (False, False, None, None)

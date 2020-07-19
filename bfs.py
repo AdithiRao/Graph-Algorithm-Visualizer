@@ -4,7 +4,7 @@ from constants import *
 
 
 class BFS:
-    def __init__(self, start, target, grid):
+    def __init__(self, start, target, grid, walls):
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
         self.queue = deque()
@@ -19,6 +19,7 @@ class BFS:
         self.parents = deepcopy(grid) #will store the coordinates of the parent
         self.shortest_path = []
         self.drawing_shortest_path = False
+        self.walls = walls
 
     def generate_shortest_path(self):
         node_x, node_y = self.target
@@ -78,7 +79,8 @@ class BFS:
             for dir in self.directions:
                 if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
                 curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width and \
-                (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
+                (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set \
+                and self.walls[curr_row+dir[0]][curr_col+dir[1]] != 0:
                     self.queue.append((curr_row+dir[0], curr_col+dir[1]))
                     self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
                     self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
