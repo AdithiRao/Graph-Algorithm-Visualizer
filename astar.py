@@ -12,7 +12,7 @@ class ASTAR:
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
         self.shortest_path = []
         self.pq = []
-        heappush(self.pq, (0, start))
+        heappush(self.pq, (0, start, 0))
         self.VISITED_1_STEP_AGO = None
         self.VISITED_2_STEPS_AGO = None
         self.VISITED_3_STEPS_AGO = None
@@ -24,6 +24,8 @@ class ASTAR:
         self.grid = grid
         self.start = start
         self.drawing_shortest_path = False
+        print("Start", start)
+        print("Target", target)
 
     def generate_shortest_path(self):
         node_x, node_y = self.target
@@ -59,7 +61,7 @@ class ASTAR:
             self.grid[row][col] = VISITED_1_STEP_AGO
             self.VISITED_2_STEPS_AGO = self.VISITED_1_STEP_AGO
         if self.pq:
-            (weight, (row, col)) = self.pq[0]
+            (_, (row, col), _) = self.pq[0]
             self.grid[row][col] = CURR_VISITING
             self.VISITED_1_STEP_AGO = (row, col)
 
@@ -72,7 +74,9 @@ class ASTAR:
         if len(self.pq) == 0:
             return (False, True, None, None)
         if self.pq:
-            curr_weight, (curr_row, curr_col) = self.pq[0]
+            _, (curr_row, curr_col), curr_weight = self.pq[0]
+            print(curr_weight)
+            print(curr_row, curr_col)
             if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
@@ -88,7 +92,9 @@ class ASTAR:
                     el_weight = self.weights[curr_row+dir[0]][curr_col+dir[1]] +\
                                 curr_weight + self.heuristic(curr_row+dir[0], \
                                 curr_col+dir[1])
-                    heappush(self.pq, (el_weight, (curr_row+dir[0], curr_col+dir[1])))
+                    actual_weight = self.weights[curr_row+dir[0]][curr_col+dir[1]] +\
+                                    curr_weight
+                    heappush(self.pq, (el_weight, (curr_row+dir[0], curr_col+dir[1]), actual_weight))
                     self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
                     self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
 

@@ -26,11 +26,10 @@ class CurrGraphAlgorithm():
         elif alg == "Dijkstra's":
             self.instance = DIJKSTRAS(start, target, grid, weights)
         elif alg == "A*: Euclidean Distance":
-            heuristic = lambda x,y: math.sqrt((target[0]-x)**2 + (target[1]-y)**2)
+            heuristic = lambda r,c: math.sqrt((target[0]-r)**2 + (target[1]-c)**2)
             self.instance = ASTAR(start, target, grid, weights, heuristic)
         elif alg == "A*: Manhattan Distance":
-            print("here")
-            heuristic = lambda x,y: abs(target[0]-x) + abs(target[1]-y)
+            heuristic = lambda r,c: abs(target[0]-r) + abs(target[1]-c)
             self.instance = ASTAR(start, target, grid, weights, heuristic)
 
     def algorithm_done(self):
