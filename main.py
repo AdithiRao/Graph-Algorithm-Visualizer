@@ -2,7 +2,6 @@
 
 '''
 @Kanvi
-TODO: Fix the weight functionality so that numbers show up
 TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, greedy bfs, bidirectional swarm
@@ -116,7 +115,7 @@ clear_path_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTT
 
 speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygame.Rect((BUTTON_MARGIN*3
                                     + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
-                                    start_value=0.001,
+                                    start_value=0.05,
                                     value_range=(0.1, 0.005),
                                     manager = manager)
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
@@ -168,10 +167,12 @@ while not done:
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
                 if event.ui_element == clear_path_button:
-                    grid = curr_alg.newGrid(NOT_VISITED)
+                    curr_alg = CurrGraphAlgorithm()
+                    for row in range(ROWS):
+                        grid[row] = [NOT_VISITED if x != WALL and x != WEIGHTED else x for x in grid[row]]
                 if event.ui_element == clear_weights_walls_button:
                     for row in range(ROWS):
-                        grid[row] = [NOT_VISITED if x == WALL else x for x in grid[row]]
+                        grid[row] = [NOT_VISITED if x == WALL or x == WEIGHTED else x for x in grid[row]]
                     weights = curr_alg.newGrid(1)
                 if event.ui_element == weight_button:
                     adding_weights = True
