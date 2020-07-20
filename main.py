@@ -6,6 +6,7 @@ TODO: Fix the weight functionality so that numbers show up
 TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, greedy bfs, bidirectional swarm
+TODO: Fix color sheme of search to go with gui colors
 TODO: Adithi got confused by how to clear weights, I don't think we should be
       using grid to represent both weights/walls and the searching. I thought
       that's why we made the new weights matrix. Look at my logic for the
@@ -18,9 +19,6 @@ TODO: Add an info box that shows up on the screen describing every algorithm a b
       and the current step
 TODO: Bellman Ford, Johnsons
 TODO: More buttons: Clear Everything, Clear Walls and Weights, Clear Path
-TODO: Finish implementing speeds
-TODO: Ability to step through one step at a time- a new button should show up
-      if they choose this option (a + or something)
 TODO: Send a notification if negative weights are on the graph when not running
       one of the algos that can handle negative edges
 TODO: Add ability to add walls- we can also do the prebuilt maze feature
@@ -85,7 +83,7 @@ step_to_be_made = False
 (found, alg_done, curr_spath_node, n_node_dir) = (False, False, None, None)
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's", "A*: Euclidean Distance",
-                    "A*: Manhattan Distance", "Belmann Ford", "Johnsons"]
+                    "A*: Manhattan Distance", "Bellman Ford", "Johnsons"]
 algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
                         "Choose an Algorithm!",
                         pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
@@ -117,11 +115,11 @@ clear_path_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTT
 speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygame.Rect((BUTTON_MARGIN*3
                                     + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
                                     start_value=0.001,
-                                    value_range=(0.1, 0.005),
+                                    value_range=(0.1, 0.001),
                                     manager = manager)
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
                                                     GRID_SIZE[1] + BUTTON_MARGIN),
-                                                    BUTTON_SIZE),
+                                                    MINI_BUTTON_SIZE),
                                                     text='Step',
                                                     manager=manager)
 step_button.hide()
@@ -138,7 +136,13 @@ done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BU
                                             text='Done Adding Weights',
                                             manager=manager)
 done_weights_button.disable()
-
+warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
+                                            (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
+                                            WARNING_WINDOW_SIZE),
+                                            html_message="Message",
+                                            window_title="Warning",
+                                            manager=manager)
+warning_window.hide()
 # -------- Main Program Loop -----------
 while not done:
     time_delta = clock.tick(60)/1000.0
@@ -151,6 +155,7 @@ while not done:
                 if event.ui_element == algorithms_dropdown:
                     algo_selected = True
                     start_button.enable()
+                    
 
             speed = speed_button.get_current_value()
             if speed == 0.1:
