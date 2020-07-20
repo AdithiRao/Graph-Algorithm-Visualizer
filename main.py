@@ -148,7 +148,7 @@ while not done:
 
         elif event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                if event.ui_element == algorithms_dropdown:
+                if event.ui_element == algorithms_dropdown and not adding_weights:
                     algo_selected = True
                     start_button.enable()
 
@@ -160,7 +160,6 @@ while not done:
 
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
-                    grid = curr_alg.newGrid(NOT_VISITED)
                     curr_alg.update_algorithm((start_pos, target_pos,
                                                 algorithms_dropdown.selected_option),
                                                 grid, weights)
@@ -171,6 +170,8 @@ while not done:
                 if event.ui_element == clear_path_button:
                     grid = curr_alg.newGrid(NOT_VISITED)
                 if event.ui_element == clear_weights_walls_button:
+                    for row in range(ROWS):
+                        grid[row] = [NOT_VISITED if x == WALL else x for x in grid[row]]
                     weights = curr_alg.newGrid(1)
                 if event.ui_element == weight_button:
                     adding_weights = True
@@ -256,7 +257,7 @@ while not done:
 
             # set all cells that were visited to same color
             for row in range(ROWS):
-                grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND else x for x in grid[row]]
+                grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND and x!= WALL else x for x in grid[row]]
 
             # We are currently drawing the shortest path
             if time_elapsed_since_last_action > 0.05:
@@ -276,6 +277,8 @@ while not done:
 
     # Set the screen background
     screen.fill(BACKGROUND_COLOR)
+
+    font = pygame.font.SysFont('couriernewttf', HEIGHT)
 
     # Draw the grid
     for row in range(ROWS):
@@ -305,6 +308,12 @@ while not done:
                                   (MARGIN + HEIGHT) * row + MARGIN,
                                   WIDTH,
                                   HEIGHT])
+            
+            if weights[row][column] != 0 and weights[row][column] != 1:
+                surf = font.render(str(weights[row][column]), True, (0,0,0))
+                rectangle = surf.get_rect()
+                rectangle.center = ((MARGIN + WIDTH) * column + MARGIN + WIDTH/2, (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2)
+                screen.blit(surf, rectangle)
 
             if curr_spath_node and n_node_dir:
                 (curr_spath_row, curr_spath_col) = curr_spath_node
