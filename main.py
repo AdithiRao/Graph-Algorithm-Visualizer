@@ -5,6 +5,7 @@
 TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, greedy bfs, bidirectional swarm
+TODO: make info box area on screen
 
 @Adithi
 TODO: Double check A*
