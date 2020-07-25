@@ -5,12 +5,8 @@
 TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, greedy bfs, bidirectional swarm
+TODO: make info box area on screen
 TODO: Fix color sheme of search to go with gui colors
-TODO: Adithi got confused by how to clear weights, I don't think we should be
-      using grid to represent both weights/walls and the searching. I thought
-      that's why we made the new weights matrix. Look at my logic for the
-      new clear buttons and try to make them work if you can! Otherwise I
-      can change them, but I think this separation of concerns is important
 
 @Adithi
 TODO: Add an info box that shows up on the screen describing every algorithm a bit
@@ -163,20 +159,27 @@ while not done:
 
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
+                    curr_alg = CurrGraphAlgorithm()
+                    grid = curr_alg.newGrid(NOT_VISITED)
                     curr_alg.update_algorithm((start_pos, target_pos,
                                                 algorithms_dropdown.selected_option),
                                                 grid, weights)
+                    adding_walls = False
+                    adding_weights = False
+                    weight_button.disable()
+                    clear_weights_walls_button.disable()
                 if event.ui_element == clear_all_button:
                     curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
+                    adding_walls = True
+                    adding_weights = False
+                    weight_button.enable()
+                    clear_weights_walls_button.enable()
                 if event.ui_element == clear_path_button:
                     curr_alg = CurrGraphAlgorithm()
-                    for row in range(ROWS):
-                        grid[row] = [NOT_VISITED if x != WALL and x != WEIGHTED else x for x in grid[row]]
+                    grid = curr_alg.newGrid(NOT_VISITED)
                 if event.ui_element == clear_weights_walls_button:
-                    for row in range(ROWS):
-                        grid[row] = [NOT_VISITED if x == WALL or x == WEIGHTED else x for x in grid[row]]
                     weights = curr_alg.newGrid(1)
                 if event.ui_element == weight_button:
                     adding_weights = True
@@ -197,7 +200,7 @@ while not done:
                                 weights[row][col] = int(weight_text_entry.get_text())
                     weight_text_entry.set_text("")
                     for row in range(ROWS):
-                        grid[row] = [WEIGHTED if x == TO_WEIGHT else x for x in grid[row]]
+                        grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
                 if event.ui_element == step_button:
                     step_to_be_made = True
 
@@ -224,11 +227,10 @@ while not done:
                     else:
                         grid[row][column] = NOT_VISITED
                 if adding_walls:
-                    if grid[row][column] != WALL:
-                        grid[row][column] = WALL
+                    if weights[row][column] != 0:
                         weights[row][column] = 0
                     else:
-                        grid[row][column] = NOT_VISITED
+                        weights[row][column] = 1
 
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
@@ -240,7 +242,7 @@ while not done:
                 start_x = pos[0] + start_offset_x
                 start_y = pos[1] + start_offset_y
                 temp = (start_y // (HEIGHT + MARGIN), start_x // (WIDTH + MARGIN))
-                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS:
+                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS or weights[temp[0]][temp[1]] == 0:
                     start_pos = start_pos
                 else:
                     start_pos = temp
@@ -248,7 +250,7 @@ while not done:
                 target_x = pos[0] + target_offset_x
                 target_y = pos[1] + target_offset_y
                 temp = (target_y // (HEIGHT + MARGIN), target_x // (WIDTH + MARGIN))
-                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS:
+                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS or weights[temp[0]][temp[1]] == 0:
                     target_pos = target_pos
                 else:
                     target_pos = temp
@@ -262,7 +264,7 @@ while not done:
 
             # set all cells that were visited to same color
             for row in range(ROWS):
-                grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND and x!= WALL else x for x in grid[row]]
+                grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND else x for x in grid[row]]
 
             # We are currently drawing the shortest path
             if time_elapsed_since_last_action > 0.05:
@@ -297,7 +299,11 @@ while not done:
                               HEIGHT])
 
             cell = grid[row][column]
-            color = COLORS[cell]
+            weight_cell = weights[row][column]
+            if weight_cell == 0:
+                color = COLORS[WALL]
+            else:
+                color = COLORS[cell]
 
             if cell == CURR_VISITING or cell == VISITED_1_STEP_AGO or cell == VISITED_2_STEPS_AGO or cell == VISITED_3_STEPS_AGO:
                 pygame.draw.rect(screen,
