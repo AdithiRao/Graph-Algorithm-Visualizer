@@ -13,7 +13,6 @@ TODO: Adithi got confused by how to clear weights, I don't think we should be
       can change them, but I think this separation of concerns is important
 
 @Adithi
-TODO: Double check A*
 TODO: Add an info box that shows up on the screen describing every algorithm a bit
       and the current step
 TODO: Bellman Ford, Johnsons
