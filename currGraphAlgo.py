@@ -8,6 +8,7 @@ from constants import ROWS, COLS, MARGIN, WIDTH, HEIGHT, COLORS, WHITE
 class CurrGraphAlgorithm():
     def __init__(self):
         self.running = False
+        self.started = False
 
     def newGrid(self, initial):
         grid = []
@@ -19,6 +20,8 @@ class CurrGraphAlgorithm():
     def update_algorithm(self, params, grid, weights):
         (start, target, alg) = params
         self.running = True
+        self.alg_name = alg
+        self.started = True
         if alg == "Breadth First Search":
             self.instance = BFS(start, target, grid, weights) #weights will j be walls
         elif alg == "Depth First Search":

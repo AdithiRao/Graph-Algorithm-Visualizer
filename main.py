@@ -12,7 +12,6 @@ TODO: Fix color sheme of search to go with gui colors
 TODO: Add an info box that shows up on the screen describing every algorithm a bit
       and the current step
 TODO: Bellman Ford, Johnsons
-TODO: More buttons: Clear Everything, Clear Walls and Weights, Clear Path
 TODO: Send a notification if negative weights are on the graph when not running
       one of the algos that can handle negative edges
 TODO: Add ability to add walls- we can also do the prebuilt maze feature
@@ -36,8 +35,7 @@ TODO: Make the number of grid lines an dynamic feature based on rows and cols
 TODO: ^ Based on this, if the window gets resized during the game, the grid should auto-adjust
      (make more/less rows and columns)-- By default the screen should be a rectangle though
 TODO: Algos to add: Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm algorithm
-TODO: Allow them to step through one box at a time with a description of what is going on (what was being
-      visited on the previous round)
+
 
 '''
 import pygame
@@ -74,7 +72,6 @@ adding_weights = False
 adding_walls = True
 speed = 0.001
 step_to_be_made = False
-(found, alg_done, curr_spath_node, n_node_dir) = (False, False, None, None)
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's", "A*: Euclidean Distance",
                     "A*: Manhattan Distance", "Bellman Ford", "Johnsons"]
@@ -130,6 +127,12 @@ done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BU
                                             text='Done Adding Weights',
                                             manager=manager)
 done_weights_button.disable()
+info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
+                                            relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
+                                            GRID_SIZE[1] + 2*BUTTON_MARGIN + BUTTON_HEIGHT),
+                                            (WARNING_WINDOW_SIZE[0], 3*WARNING_WINDOW_SIZE[1]//4)),
+                                            manager=manager)
+
 warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
                                             (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
                                             WARNING_WINDOW_SIZE),
@@ -208,7 +211,7 @@ while not done:
             pos = pygame.mouse.get_pos()
             column = pos[0] // (WIDTH + MARGIN)
             row = pos[1] // (HEIGHT + MARGIN)
-            print("Click ", pos, "Grid coordinates: ", row, column)
+            # print("Click ", pos, "Grid coordinates: ", row, column)
 
             if (column == start_pos[1] and row == start_pos[0] and not curr_alg.running):
                 start_dragging = True
@@ -260,7 +263,7 @@ while not done:
     manager.update(time_delta)
     time_elapsed_since_last_action += time_delta
     if curr_alg.running and time_elapsed_since_last_action > speed:
-        if found and not alg_done:
+        if curr_alg.instance.drawing_shortest_path:
 
             # set all cells that were visited to same color
             for row in range(ROWS):
@@ -268,19 +271,35 @@ while not done:
 
             # We are currently drawing the shortest path
             if time_elapsed_since_last_action > 0.05:
-                (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
+                curr_alg.instance.one_step()
+                shortest_pweight = curr_alg.instance.shortest_path_length
+                curr_node = curr_alg.instance.curr_node
                 time_elapsed_since_last_action = 0
+                info_box.html_text = "Now drawing shortest path of weight/length {}".format(shortest_pweight)
+                info_box.rebuild()
+            if not curr_alg.instance.drawing_shortest_path:
+                curr_alg.algorithm_done()
         else:
-            if speed != 0.1:
-                (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
-                time_elapsed_since_last_action = 0
-            elif step_to_be_made:
-                (found, alg_done, curr_spath_node, n_node_dir) = curr_alg.instance.one_step()
-                step_to_be_made = False
+            if speed != 0.1 or step_to_be_made:
+                curr_alg.instance.one_step()
+                shortest_pweight = curr_alg.instance.shortest_path_length
+                curr_node = curr_alg.instance.curr_node
+                if curr_alg.alg_name == 'Breadth First Search' or curr_alg.alg_name == 'Depth First Search':
+                    info_box.html_text = "Step: {} <br>Now visiting: {}".format(shortest_pweight, curr_node)
+                else:
+                    info_box.html_text = "Weight: {} <br>Now visiting: {}".format(shortest_pweight, curr_node)
+                info_box.rebuild()
+                if speed != 0.1:
+                    time_elapsed_since_last_action = 0
+                else:
+                    step_to_be_made = False
+
 
         grid = curr_alg.instance.grid
-        if alg_done:
-            curr_alg.algorithm_done()
+    elif not curr_alg.running and curr_alg.started: #not currently running an algorithm
+        info_box.html_text = "Done running algorithm. Shortest path found had weight {}".format(shortest_pweight)
+        info_box.rebuild()
+    
 
     # Set the screen background
     screen.fill(BACKGROUND_COLOR)
@@ -326,32 +345,33 @@ while not done:
                 rectangle.center = ((MARGIN + WIDTH) * column + MARGIN + WIDTH/2, (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2)
                 screen.blit(surf, rectangle)
 
-            if curr_spath_node and n_node_dir:
-                (curr_spath_row, curr_spath_col) = curr_spath_node
-                start_x_pos = (MARGIN + WIDTH)*curr_spath_col+ MARGIN
-                start_y_pos = (MARGIN + HEIGHT) * curr_spath_row + MARGIN
-                #right arrow
-                if n_node_dir == (0, 1):
-                    pygame.draw.polygon(screen, ARROW_COLOR,
-                    ((start_x_pos, start_y_pos),
-                    (start_x_pos+WIDTH, start_y_pos+HEIGHT//2),
-                    (start_x_pos, start_y_pos+HEIGHT)))
-                elif n_node_dir == (0, -1):
-                    pygame.draw.polygon(screen, ARROW_COLOR,
-                    ((start_x_pos+WIDTH, start_y_pos),
-                    (start_x_pos, start_y_pos+HEIGHT//2),
-                    (start_x_pos+WIDTH, start_y_pos+HEIGHT)))
-                #up
-                elif n_node_dir == (-1, 0):
-                    pygame.draw.polygon(screen, ARROW_COLOR,
-                    ((start_x_pos, start_y_pos+HEIGHT),
-                    (start_x_pos+WIDTH//2, start_y_pos),
-                    (start_x_pos+WIDTH, start_y_pos+HEIGHT)))
-                elif n_node_dir == (1, 0):
-                    pygame.draw.polygon(screen, ARROW_COLOR,
-                    ((start_x_pos, start_y_pos),
-                    (start_x_pos+WIDTH//2, start_y_pos+HEIGHT),
-                    (start_x_pos+WIDTH, start_y_pos)))
+    if curr_alg.running and curr_alg.instance.drawing_shortest_path:
+        (curr_spath_row, curr_spath_col) = curr_node
+        n_node_dir = curr_alg.instance.n_node_dir
+        start_x_pos = (MARGIN + WIDTH)*curr_spath_col+ MARGIN
+        start_y_pos = (MARGIN + HEIGHT) * curr_spath_row + MARGIN
+        #right arrow
+        if n_node_dir == (0, 1):
+            pygame.draw.polygon(screen, ARROW_COLOR,
+            ((start_x_pos, start_y_pos),
+            (start_x_pos+WIDTH, start_y_pos+HEIGHT//2),
+            (start_x_pos, start_y_pos+HEIGHT)))
+        elif n_node_dir == (0, -1):
+            pygame.draw.polygon(screen, ARROW_COLOR,
+            ((start_x_pos+WIDTH, start_y_pos),
+            (start_x_pos, start_y_pos+HEIGHT//2),
+            (start_x_pos+WIDTH, start_y_pos+HEIGHT)))
+        #up
+        elif n_node_dir == (-1, 0):
+            pygame.draw.polygon(screen, ARROW_COLOR,
+            ((start_x_pos, start_y_pos+HEIGHT),
+            (start_x_pos+WIDTH//2, start_y_pos),
+            (start_x_pos+WIDTH, start_y_pos+HEIGHT)))
+        elif n_node_dir == (1, 0):
+            pygame.draw.polygon(screen, ARROW_COLOR,
+            ((start_x_pos, start_y_pos),
+            (start_x_pos+WIDTH//2, start_y_pos+HEIGHT),
+            (start_x_pos+WIDTH, start_y_pos)))
 
 
     # draw start and target nodes
