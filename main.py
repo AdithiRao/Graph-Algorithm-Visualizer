@@ -6,11 +6,19 @@ TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, greedy bfs, bidirectional swarm
 TODO: prebuilt maze feature
-TODO: Fix color sheme of search to go with gui colors
+TODO: Fix the rendering time
+TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
+TODO: Add speed label to the slider
+TODO: Somehow increase the max speed
+TODO: Disable moving target/source while running
+TODO: Add feature to first visit other node
+TODO: Have an info popup showing how to use everything
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers
+TODO: When adding weights, disable everything else and turn button into done adding weights
+      Also make the textbox only appear then.
 TODO: Bellman Ford, Johnsons
 TODO: Send a notification if negative weights are on the graph when not running
       one of the algos that can handle negative edges-- get lines 164 and down to work
@@ -18,7 +26,8 @@ TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
       If weights are added- don't allow bfs or dfs to be added
       When the algorith chosen is dijkstras- all negative weights need to be removed
 TODO: Given that most find the shortest path to every node,
-      there should be a way to auto calculate when the target gets moved around
+      there should be a way to auto calculate when the target gets moved around.
+      The start node should be fixed in this case
 
 @General
 TODO: When weights are added as a feature, we need to make sure they cannot dfs or bfs
@@ -63,6 +72,7 @@ curr_alg = CurrGraphAlgorithm()
 grid = curr_alg.newGrid(NOT_VISITED) # initialize empty grid
 weights = curr_alg.newGrid(1) # initialize weights
 
+font = pygame.font.SysFont('couriernewttf', 2*HEIGHT//3)
 start_pos = (ROWS//2,COLS//3)
 target_pos = (ROWS//2,COLS*2//3)
 start_dragging = False
@@ -102,12 +112,17 @@ clear_path_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTT
                                             text='Clear Path',
                                             manager=manager)
 
-
 speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygame.Rect((BUTTON_MARGIN*3
-                                    + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
+                                    + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN),
+                                    (BUTTON_WIDTH, BUTTON_HEIGHT)),
                                     start_value=0.001,
                                     value_range=(0.1, 0.001),
                                     manager = manager)
+surf = font.render('Speed', True, (255, 255, 255))
+rectangle = surf.get_rect()
+rectangle.center = (BUTTON_MARGIN*3+ BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN)
+screen.blit(surf, rectangle)
+
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
                                                     GRID_SIZE[1] + BUTTON_MARGIN),
                                                     MINI_BUTTON_SIZE),
@@ -130,7 +145,7 @@ done_weights_button.disable()
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
                                             relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
                                             GRID_SIZE[1] + 2*BUTTON_MARGIN + BUTTON_HEIGHT),
-                                            (WARNING_WINDOW_SIZE[0], 3*WARNING_WINDOW_SIZE[1]//5)),
+                                            (WARNING_WINDOW_SIZE[0], 2*WARNING_WINDOW_SIZE[1]//3)),
                                             manager=manager)
 
 # warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
@@ -317,8 +332,6 @@ while not done:
 
     # Set the screen background
     screen.fill(BACKGROUND_COLOR)
-
-    font = pygame.font.SysFont('couriernewttf', HEIGHT)
 
     # Draw the grid
     for row in range(ROWS):

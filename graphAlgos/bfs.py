@@ -1,18 +1,15 @@
-from copy import deepcopy
-from heapq import heappush, heappop, heapify
-from graphClass import GraphSearchBase
+from collections import deque
+from graphAlgos.graphClass import GraphSearchBase
 from constants import *
 
 
-class ASTAR(GraphSearchBase):
-    def __init__(self, start, target, grid, weights, heuristic):
+class BFS(GraphSearchBase):
+    def __init__(self, start, target, grid, walls):
         super().__init__(start, target, grid)
-        self.pq = []
-        heappush(self.pq, (0, start, 0))
-        self.weights = weights
-        self.heuristic = heuristic
+        self.queue = deque()
+        self.queue.append((start,0))
+        self.walls = walls
 
-    # Returns (found, alg_done, curr_spath_node, n_node_dir)
     def one_step(self):
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
@@ -21,30 +18,25 @@ class ASTAR(GraphSearchBase):
             return
 
         self.finding_shortest_path = True
-        if self.pq:
-            _, (curr_row, curr_col), curr_weight = self.pq[0]
-            self.shortest_path_length = curr_weight
+        if self.queue:
+            (curr_row, curr_col), curr_len = self.queue[0]
+            self.shortest_path_length = curr_len + 1
             self.curr_node = (curr_row, curr_col)
-            if (curr_row, curr_col) == self.target:
+            if self.queue[0] == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
                 self.finding_shortest_path = False
                 self.drawing_shortest_path = True
                 return
             self.grid_updates()
-            heappop(self.pq)
+            self.queue.popleft()
 
             for dir in self.directions:
                 if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
                 curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width and \
                 (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set \
-                and self.weights[curr_row+dir[0]][curr_col+dir[1]] != 0:
-                    el_weight = self.weights[curr_row+dir[0]][curr_col+dir[1]] +\
-                                curr_weight + self.heuristic(curr_row+dir[0], \
-                                curr_col+dir[1])
-                    actual_weight = self.weights[curr_row+dir[0]][curr_col+dir[1]] +\
-                                    curr_weight
-                    heappush(self.pq, (el_weight, (curr_row+dir[0], curr_col+dir[1]), actual_weight))
+                and self.walls[curr_row+dir[0]][curr_col+dir[1]] != 0:
+                    self.queue.append(((curr_row+dir[0], curr_col+dir[1]), curr_len))
                     self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
                     self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
             self.finding_shortest_path = True

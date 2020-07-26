@@ -1,8 +1,10 @@
 import math
-from bfs import BFS
-from dfs import DFS
-from dijkstras import DIJKSTRAS
-from astar import ASTAR
+from graphAlgos.bfs import BFS
+from graphAlgos.dfs import DFS
+from graphAlgos.dijkstras import DIJKSTRAS
+from graphAlgos.astar import ASTAR
+from graphAlgos.bellmanFord import BELLMANFORD
+from graphAlgos.johnsons import JOHNSONS
 from constants import ROWS, COLS, MARGIN, WIDTH, HEIGHT, COLORS, WHITE
 
 class CurrGraphAlgorithm():
@@ -56,6 +58,10 @@ class CurrGraphAlgorithm():
         elif self.alg_name == "A*: Manhattan Distance":
             heuristic = lambda r,c: abs(target[0]-r) + abs(target[1]-c)
             self.instance = ASTAR(start, target, grid, weights, heuristic)
+        elif self.alg_name == "Bellman Ford":
+            self.instance = BELLMANFORD(start, target, grid, weights)
+        elif self.alg_name == "Johnsons":
+            self.instance = JOHNSONS(start, target, grid, weights)
 
     def algorithm_done(self):
         self.running = False
