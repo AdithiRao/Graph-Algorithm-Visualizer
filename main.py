@@ -5,16 +5,15 @@
 TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, greedy bfs, bidirectional swarm
-TODO: make info box area on screen
+TODO: prebuilt maze feature
 TODO: Fix color sheme of search to go with gui colors
 
 @Adithi
-TODO: Add an info box that shows up on the screen describing every algorithm a bit
-      and the current step
+TODO: Get scroll bar to work on text box
+TODO: Add x and y axis with numbers
 TODO: Bellman Ford, Johnsons
 TODO: Send a notification if negative weights are on the graph when not running
-      one of the algos that can handle negative edges
-TODO: Add ability to add walls- we can also do the prebuilt maze feature
+      one of the algos that can handle negative edges-- get lines 164 and down to work
 TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
       If weights are added- don't allow bfs or dfs to be added
       When the algorith chosen is dijkstras- all negative weights need to be removed
@@ -42,6 +41,7 @@ import pygame
 import pygame_gui
 
 from constants import *
+from helpers import *
 from currGraphAlgo import CurrGraphAlgorithm
 
 pygame.init()
@@ -130,16 +130,16 @@ done_weights_button.disable()
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
                                             relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
                                             GRID_SIZE[1] + 2*BUTTON_MARGIN + BUTTON_HEIGHT),
-                                            (WARNING_WINDOW_SIZE[0], 3*WARNING_WINDOW_SIZE[1]//4)),
+                                            (WARNING_WINDOW_SIZE[0], 3*WARNING_WINDOW_SIZE[1]//5)),
                                             manager=manager)
 
-warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
-                                            (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
-                                            WARNING_WINDOW_SIZE),
-                                            html_message="Message",
-                                            window_title="Warning",
-                                            manager=manager)
-warning_window.hide()
+# warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
+#                                             (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
+#                                             WARNING_WINDOW_SIZE),
+#                                             html_message="Message",
+#                                             window_title="Warning",
+#                                             manager=manager)
+# warning_window.hide()
 # -------- Main Program Loop -----------
 while not done:
     time_delta = clock.tick(60)/1000.0
@@ -152,8 +152,7 @@ while not done:
                 if event.ui_element == algorithms_dropdown and not adding_weights:
                     algo_selected = True
                     start_button.enable()
-
-
+                    curr_alg.update_description(algorithms_dropdown.selected_option)
             speed = speed_button.get_current_value()
             if speed == 0.1:
                 step_button.show()
@@ -162,17 +161,30 @@ while not done:
 
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == start_button and algo_selected:
-                    curr_alg = CurrGraphAlgorithm()
+                    # if (not no_weights(weights)) and \
+                    #     algorithms_dropdown.selected_option == "Breadth First Search" or\
+                    #     algorithms_dropdown.selected_option == "Depth First Search":
+                    #     warning_window.html_message = "You have selected an search algorithm that"\
+                    #                                  "does not work with weights. Please clear the"\
+                    #                                  "weights on the grid or choose a different algorithm."
+                    #     warning_window.show()
+                    # elif negative_weights(weights) and \
+                    #     algorithms_dropdown.selected_option == "Dijkstra's" or\
+                    #     algorithms_dropdown.selected_option == "A*: Euclidean Distance" or\
+                    #     algorithms_dropdown.selected_option == "A*: Manhattan Distance":
+                    #     warning_window.html_message = "You have selected an search algorithm that"\
+                    #                                   "does not work with negative weights. Please clear the"\
+                    #                                   "negative weights on the grid or choose a different algorithm."
+                    #     warning_window.show()
+                    # else:
                     grid = curr_alg.newGrid(NOT_VISITED)
-                    curr_alg.update_algorithm((start_pos, target_pos,
-                                                algorithms_dropdown.selected_option),
+                    curr_alg.start_algorithm((start_pos, target_pos),
                                                 grid, weights)
                     adding_walls = False
                     adding_weights = False
                     weight_button.disable()
                     clear_weights_walls_button.disable()
                 if event.ui_element == clear_all_button:
-                    curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
                     adding_walls = True
@@ -180,7 +192,6 @@ while not done:
                     weight_button.enable()
                     clear_weights_walls_button.enable()
                 if event.ui_element == clear_path_button:
-                    curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
                 if event.ui_element == clear_weights_walls_button:
                     weights = curr_alg.newGrid(1)
@@ -199,11 +210,14 @@ while not done:
                     for row in range(ROWS):
                         for col in range(COLS):
                             if grid[row][col] == TO_WEIGHT:
-                                print(weight_text_entry.get_text())
                                 weights[row][col] = int(weight_text_entry.get_text())
                     weight_text_entry.set_text("")
                     for row in range(ROWS):
                         grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
+                    # if not no_weights(weights):
+                    #
+                    # if negative_weights(weights):
+
                 if event.ui_element == step_button:
                     step_to_be_made = True
 
@@ -211,7 +225,6 @@ while not done:
             pos = pygame.mouse.get_pos()
             column = pos[0] // (WIDTH + MARGIN)
             row = pos[1] // (HEIGHT + MARGIN)
-            # print("Click ", pos, "Grid coordinates: ", row, column)
 
             if (column == start_pos[1] and row == start_pos[0] and not curr_alg.running):
                 start_dragging = True
@@ -279,7 +292,7 @@ while not done:
                 info_box.rebuild()
             if not curr_alg.instance.drawing_shortest_path:
                 curr_alg.algorithm_done()
-        else:
+        else: #either needs to start or already started calculating the shortest path
             if speed != 0.1 or step_to_be_made:
                 curr_alg.instance.one_step()
                 shortest_pweight = curr_alg.instance.shortest_path_length
@@ -293,13 +306,14 @@ while not done:
                     time_elapsed_since_last_action = 0
                 else:
                     step_to_be_made = False
-
-
         grid = curr_alg.instance.grid
-    elif not curr_alg.running and curr_alg.started: #not currently running an algorithm
-        info_box.html_text = "Done running algorithm. Shortest path found had weight {}".format(shortest_pweight)
+    elif not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance:
+        info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
         info_box.rebuild()
-    
+    elif not curr_alg.running and curr_alg.alg_chosen:
+        info_box.html_text = curr_alg.description
+        info_box.rebuild()
+
 
     # Set the screen background
     screen.fill(BACKGROUND_COLOR)
