@@ -12,6 +12,7 @@ TODO: Fix color scheme of search to go with gui colors
 @Adithi
 TODO: Add speed label to the slider
 TODO: Somehow increase the max speed
+TODO: Find a cool way to display the more complex algorithms and clarify the usefulness of each one
 TODO: Disable moving target/source while running
 TODO: Add feature to first visit other node
 TODO: Have an info popup showing how to use everything
