@@ -22,6 +22,9 @@ A* is an adaption of Dijkstra's algorithm that is useful when you have a fixed t
   * Manhattan Heuristic: This is also known as taxicab distance and is calculated by doing |target_x_value - node_x_value| + |target_y_value - node_y_value|.
 
   * Euclidean distance heuristic: This is normal straight line distance and is calculated by doing sqrt((target_x_value - node_x_value)^2 + (target_y_value - node_y_value)^2).
+  
+* Greedy Best First Search:
+This algorithm is almost exactly the same as A*, except for the fact that the weights play no role in the search. The next nodes to explore are directly dictated by the heuristic (this is each node in the priority queue's weight).
 
 * Bellman Ford:
 Bellman Ford is an algorithm that is specifically used due to its ability to deal with negative edge weights. The algorithm is able to detect the presence of negative cycles. However, if the negative cycle does not impact the path to the vertex, we have chosen to still display the shortest path that is found. Bellman ford's algorithm is based on the idea that any vertex can at most be V steps away from any other vertex. In our graph, we can actually decrease this criteria to be at most Width+Height, since this is a grid. Because of this, we know that a cycle has been detected if it takes more than Width+Height rounds to reach every vertex.
