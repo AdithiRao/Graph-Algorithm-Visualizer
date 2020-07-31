@@ -4,13 +4,14 @@
 @Kanvi
 TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
-TODO: Swarm, greedy bfs, bidirectional swarm
+TODO: Swarm, bidirectional swarm
 TODO: prebuilt maze feature
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
 TODO: Add speed label to the slider
+TODO: Make heuristics dropdown
 TODO: Somehow increase the max speed
 TODO: Find a cool way to display the more complex algorithms and clarify the usefulness of each one
 TODO: Disable moving target/source while running
@@ -20,7 +21,7 @@ TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers
 TODO: When adding weights, disable everything else and turn button into done adding weights
       Also make the textbox only appear then.
-TODO: Bellman Ford, Johnsons
+TODO: Johnsons, Beam Search
 TODO: Send a notification if negative weights are on the graph when not running
       one of the algos that can handle negative edges-- get lines 164 and down to work
 TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
@@ -35,7 +36,6 @@ TODO: When weights are added as a feature, we need to make sure they cannot dfs 
       cannot be clicked - i don't think this is necessary, they just won't be considered?
       - Well technically that would be incorrect cuz those algos dont work on weighted
       graphs so it could confuse a user
-TODO: Create a README
 TODO: Stylize main.py and add comments to other files
 TODO: Change the icons for start and end (if possible, or else j make prettier)
 TODO: Make the currently running algorithm reset if either the target or start changes (they
@@ -85,7 +85,7 @@ speed = 0.001
 step_to_be_made = False
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's", "A*: Euclidean Distance",
-                    "A*: Manhattan Distance", "Bellman Ford", "Johnsons"]
+                    "A*: Manhattan Distance", "Bellman Ford", "Johnsons", "Greedy BFS"]
 algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
                         "Choose an Algorithm!",
                         pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),

@@ -28,7 +28,6 @@ class BELLMANFORD(GraphSearchBase):
         if self.iteration > self.num_vertices:
             self.neg_cycle = True
             self.finding_shortest_path = False
-            print("negative cycle")
             return []
         new_vertex_dists = {}
         vertices_to_process = []

@@ -5,6 +5,7 @@ from graphAlgos.dijkstras import DIJKSTRAS
 from graphAlgos.astar import ASTAR
 from graphAlgos.bellmanFord import BELLMANFORD
 from graphAlgos.johnsons import JOHNSONS
+from graphAlogs.greedyBFS import GREEDYBFS
 from constants import ROWS, COLS, MARGIN, WIDTH, HEIGHT, COLORS, WHITE
 
 class CurrGraphAlgorithm():
@@ -62,6 +63,9 @@ class CurrGraphAlgorithm():
             self.instance = BELLMANFORD(start, target, grid, weights)
         elif self.alg_name == "Johnsons":
             self.instance = JOHNSONS(start, target, grid, weights)
+        elif self.alg_name == "Greedy BFS":
+            heuristic = lambda r,c: abs(target[0]-r) + abs(target[1]-c)
+            self.instance = GREEDYBFS(start, target, grid, weights, heuristic)
 
     def algorithm_done(self):
         self.running = False
