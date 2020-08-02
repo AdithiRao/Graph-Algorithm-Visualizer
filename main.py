@@ -10,8 +10,11 @@ TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
+TODO: Restrict the weights to be -99 to 99
 TODO: Add speed label to the slider
-TODO: Make heuristics dropdown
+TODO: Add builtin graphs (one with negative cycles, maze, arbitrary weights)
+TODO: What if the target is no longer reachable because of walls
+TODO: Make sure target/source cannot be placed on a wall and vice versa
 TODO: Somehow increase the max speed
 TODO: Find a cool way to display the more complex algorithms and clarify the usefulness of each one
 TODO: Disable moving target/source while running
@@ -21,7 +24,7 @@ TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers
 TODO: When adding weights, disable everything else and turn button into done adding weights
       Also make the textbox only appear then.
-TODO: Johnsons, Beam Search
+TODO: Johnsons, Bidirectional search, Floyd–Warshall
 TODO: Send a notification if negative weights are on the graph when not running
       one of the algos that can handle negative edges-- get lines 164 and down to work
 TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
@@ -84,37 +87,37 @@ adding_walls = True
 speed = 0.001
 step_to_be_made = False
 
-algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's", "A*: Euclidean Distance",
-                    "A*: Manhattan Distance", "Bellman Ford", "Johnsons", "Greedy BFS"]
+algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's",
+                    "A*", "Bellman Ford", "Johnsons", "Greedy BFS"]
 algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
                         "Choose an Algorithm!",
-                        pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_MARGIN), BUTTON_SIZE),
+                        pygame.Rect((MENU_COL(1), MENU_ROW(1)), BUTTON_SIZE),
                         manager=manager)
 
-start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_MARGIN),
+start_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(2), MENU_ROW(1)),
                                             BUTTON_SIZE),
                                             text='Start!',
                                             manager=manager)
 start_button.disable()
 
-clear_all_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN,
-                                            GRID_SIZE[1] + 2*BUTTON_HEIGHT + 3*BUTTON_MARGIN),
+clear_all_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(1),
+                                            MENU_ROW(4)),
                                             BUTTON_SIZE),
                                             text='Clear All',
                                             manager=manager)
-clear_weights_walls_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH,
-                                            GRID_SIZE[1] + 2*BUTTON_HEIGHT + 3*BUTTON_MARGIN),
+clear_weights_walls_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(2),
+                                            MENU_ROW(4)),
                                             BUTTON_SIZE),
                                             text='Clear Weights/Walls',
                                             manager=manager)
-clear_path_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2,
-                                            GRID_SIZE[1] + 2*BUTTON_HEIGHT + 3*BUTTON_MARGIN),
+clear_path_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(3),
+                                            MENU_ROW(4)),
                                             BUTTON_SIZE),
                                             text='Clear Path',
                                             manager=manager)
 
-speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygame.Rect((BUTTON_MARGIN*3
-                                    + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN),
+speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygame.Rect((MENU_COL(3),
+                                    MENU_ROW(1)),
                                     (BUTTON_WIDTH, BUTTON_HEIGHT)),
                                     start_value=0.001,
                                     value_range=(0.1, 0.001),
@@ -124,31 +127,45 @@ rectangle = surf.get_rect()
 rectangle.center = (BUTTON_MARGIN*3+ BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN)
 screen.blit(surf, rectangle)
 
-step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
-                                                    GRID_SIZE[1] + BUTTON_MARGIN),
+step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(4),
+                                                    MENU_ROW(1)),
                                                     MINI_BUTTON_SIZE),
                                                     text='Step',
                                                     manager=manager)
 step_button.hide()
-weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
+weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(1),
+                                            MENU_ROW(2)),
                                             BUTTON_SIZE),
                                             text='Add Weights',
                                             manager=manager)
-weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((BUTTON_MARGIN*2 + BUTTON_WIDTH, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
+weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((MENU_COL(2), MENU_ROW(2)),
                                             BUTTON_SIZE),
                                             manager=manager)
 weight_text_entry.set_allowed_characters(['-','1','2','3','4','5','6','7','8','9','0'])
-done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((BUTTON_MARGIN*3 + BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_HEIGHT + 2*BUTTON_MARGIN),
+done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(3), MENU_ROW(2)),
                                             BUTTON_SIZE),
                                             text='Done Adding Weights',
                                             manager=manager)
 done_weights_button.disable()
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
-                                            relative_rect=pygame.Rect((BUTTON_MARGIN*4 + BUTTON_WIDTH*3,
-                                            GRID_SIZE[1] + 2*BUTTON_MARGIN + BUTTON_HEIGHT),
-                                            (WARNING_WINDOW_SIZE[0], 2*WARNING_WINDOW_SIZE[1]//3)),
+                                            relative_rect=pygame.Rect((MENU_COL(4),
+                                            MENU_ROW(2)),
+                                            (WARNING_WINDOW_SIZE[0], 5*WARNING_WINDOW_SIZE[1]//7)),
                                             manager=manager)
 
+example_graphs_list = ["Arbitrary Positive Weights", "Arbitrary Weights", "Negative Cycles",
+                       "Maze: Rec Backtracking", "Maze: Kruskals"]
+graphs_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(example_graphs_list,
+                        "Builtin Graphs",
+                        pygame.Rect((MENU_COL(1), MENU_ROW(3)), BUTTON_SIZE),
+                        manager=manager)
+
+heuristics_list = ["Heuristic: Euclidean Dst.", "Heuristic: Manhattan Dst."]
+heuristics_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(heuristics_list,
+                        "Heuristic: Euclidean Dst.",
+                        pygame.Rect((MENU_COL(2), MENU_ROW(3)), BUTTON_SIZE),
+                        manager=manager)
+heuristics_dropdown.hide()
 # warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
 #                                             (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
 #                                             WARNING_WINDOW_SIZE),
@@ -169,6 +186,23 @@ while not done:
                     algo_selected = True
                     start_button.enable()
                     curr_alg.update_description(algorithms_dropdown.selected_option)
+                    if algorithms_dropdown.selected_option == "A*" or \
+                        algorithms_dropdown.selected_option == "Greedy BFS":
+                        heuristics_dropdown.show()
+                    else:
+                        heuristics_dropdown.hide()
+                elif event.ui_element == heuristics_dropdown:
+                    curr_alg.heuristic = heuristics_dropdown.selected_option
+                    curr_alg.update_description(algorithms_dropdown.selected_option)
+                elif event.ui_element == graphs_dropdown:
+                    if graphs_dropdown.selected_option == "Arbitrary Positive Weights":
+                        weights = arb_pos_weights()
+                    elif graphs_dropdown.selected_option == "Arbitrary Weights":
+                        weights = arb_weights()
+                    elif graphs_dropdown.selected_option == "Maze: Rec Backtracking":
+                        weights = recursive_backtracking_maze(start_pos, target_pos)
+                    elif graphs_dropdown.selected_option == "Maze: Kruskals":
+                        weights = kruskals_algo_maze(start_pos, target_pos)
             speed = speed_button.get_current_value()
             if speed == 0.1:
                 step_button.show()

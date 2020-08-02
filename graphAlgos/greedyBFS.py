@@ -1,4 +1,3 @@
-rom copy import deepcopy
 from heapq import heappush, heappop, heapify
 from graphAlgos.graphClass import GraphSearchBase
 from constants import *
@@ -8,7 +7,7 @@ class GREEDYBFS(GraphSearchBase):
     def __init__(self, start, target, grid, weights, heuristic):
         super().__init__(start, target, grid)
         self.pq = []
-        heappush(self.pq, (heuristic(start), start, 0))
+        heappush(self.pq, (heuristic(start[0], start[1]), start, 0))
         self.weights = weights
         self.heuristic = heuristic
 
