@@ -53,6 +53,7 @@ TODO: Algos to add: Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm
 import pygame
 import pygame_gui
 
+import time
 from constants import *
 from helpers import *
 from currGraphAlgo import CurrGraphAlgorithm
@@ -69,7 +70,8 @@ done = False
 
 
 # Used to manage how fast the screen updates
-time_elapsed_since_last_action = 0
+time_elapsed_since_last_action1 = 0
+time_elapsed_since_last_action2 = 0
 clock = pygame.time.Clock()
 
 curr_alg = CurrGraphAlgorithm()
@@ -83,6 +85,7 @@ start_dragging = False
 target_dragging = False
 algo_selected = False
 adding_weights = False
+building_mazes = []
 adding_walls = True
 speed = 0.001
 step_to_be_made = False
@@ -154,7 +157,7 @@ info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm
                                             manager=manager)
 
 example_graphs_list = ["Arbitrary Positive Weights", "Arbitrary Weights", "Negative Cycles",
-                       "Maze: Rec Backtracking", "Maze: Kruskals"]
+                       "Maze: Rec Backtracking", "Maze: Rec Division"]
 graphs_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(example_graphs_list,
                         "Builtin Graphs",
                         pygame.Rect((MENU_COL(1), MENU_ROW(3)), BUTTON_SIZE),
@@ -201,8 +204,11 @@ while not done:
                         weights = arb_weights()
                     elif graphs_dropdown.selected_option == "Maze: Rec Backtracking":
                         weights = recursive_backtracking_maze(start_pos, target_pos)
-                    elif graphs_dropdown.selected_option == "Maze: Kruskals":
-                        weights = kruskals_algo_maze(start_pos, target_pos)
+                    elif graphs_dropdown.selected_option == "Maze: Rec Division":
+                        building_mazes = recursive_division_maze(start_pos, target_pos)
+                        building_mazes.reverse()
+                        # for maze in building_mazes:
+                        #     weights = maze
             speed = speed_button.get_current_value()
             if speed == 0.1:
                 step_button.show()
@@ -324,8 +330,14 @@ while not done:
         manager.process_events(event)
 
     manager.update(time_delta)
-    time_elapsed_since_last_action += time_delta
-    if curr_alg.running and time_elapsed_since_last_action > speed:
+    time_elapsed_since_last_action1 += time_delta
+    time_elapsed_since_last_action2 += time_delta
+    if time_elapsed_since_last_action2 > 1 and building_mazes:
+        weights = building_mazes.pop()
+        time_elapsed_since_last_action2 = 0
+        print("here", len(building_mazes))
+
+    if curr_alg.running and time_elapsed_since_last_action1 > speed:
         if curr_alg.instance.drawing_shortest_path:
 
             # set all cells that were visited to same color
@@ -333,11 +345,11 @@ while not done:
                 grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND else x for x in grid[row]]
 
             # We are currently drawing the shortest path
-            if time_elapsed_since_last_action > 0.05:
+            if time_elapsed_since_last_action1 > 0.05:
                 curr_alg.instance.one_step()
                 shortest_pweight = curr_alg.instance.shortest_path_length
                 curr_node = curr_alg.instance.curr_node
-                time_elapsed_since_last_action = 0
+                time_elapsed_since_last_action1 = 0
                 info_box.html_text = "Now drawing shortest path of weight/length {}".format(shortest_pweight)
                 info_box.rebuild()
             if not curr_alg.instance.drawing_shortest_path:
@@ -353,7 +365,7 @@ while not done:
                     info_box.html_text = "Weight: {} <br>Now visiting: {}".format(shortest_pweight, curr_node)
                 info_box.rebuild()
                 if speed != 0.1:
-                    time_elapsed_since_last_action = 0
+                    time_elapsed_since_last_action1 = 0
                 else:
                     step_to_be_made = False
         grid = curr_alg.instance.grid

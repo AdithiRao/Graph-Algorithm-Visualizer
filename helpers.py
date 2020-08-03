@@ -1,5 +1,6 @@
 from constants import *
 import random
+import copy
 
 def negative_weights(grid):
     neg = False
@@ -57,55 +58,106 @@ def recursive_backtracking_maze(start, target):
     grid[target[0]][target[1]] = 1
     return grid
 
-def kruskals_algo_maze(start, target):
-    def find(data, i):
-        if i != data[i]:
-            data[i] = find(data, data[i])
-        return data[i]
+def choose_orientation(width, height):
+    if width < height:
+        return 1 #HORIZONTAL
+    elif height < width:
+        return 0
+    return random.randrange(0,1,1)
 
-    def union(data, i, j):
-        pi, pj = find(data, i), find(data, j)
-        if pi != pj:
-            data[pi] = pj
-        return
-    #the set of all edges would be all blocks that are two steps away from
-    #each other
-    grid = [[0 for col in range(COLS)] for row in range(ROWS)]
-    edges = set()
-    ids = {}
-    for curr_row in range(ROWS):
-        for curr_col in range(COLS):
-            ids[(curr_row, curr_col)] = -1
-            for dir in [(-2,0),(0,2),(2,0),(0,-2)]:
-                new_el = (curr_row+dir[0], curr_col+dir[1])
-                if new_el[0] >= 0 and new_el[0] < ROWS and \
-                new_el[1] >= 0 and new_el[1] < COLS:
-                    #tuple format: (vertex1, vertex2, wall between)
-                    if dir == (-2,0):
-                        edges.add(((curr_row, curr_col), new_el, (curr_row-1, curr_col)))
-                    elif dir == (0,2):
-                        edges.add(((curr_row, curr_col), new_el, (curr_row, curr_col+1)))
-                    elif dir == (2,0):
-                        edges.add(((curr_row, curr_col), new_el, (curr_row+1, curr_col)))
-                    elif dir == (0, -2):
-                        edges.add(((curr_row, curr_col), new_el, (curr_row, curr_col-1)))
+def recursive_division_maze(start, target):
+    grid = [[1 for col in range(COLS)] for row in range(ROWS)]
+    orientation = choose_orientation(COLS, ROWS)
+    solutions = []
+    print("ROWS, COLS", ROWS, COLS)
+    grid = divide(solutions, grid, orientation, 0, 0, COLS, ROWS, set())
+    grid[start[0]][start[1]] = 1
+    grid[target[0]][target[1]] = 1
+    return solutions
 
-    #go through the edges in a random order
-    for edge in random.sample(list(edges), len(edges)):
-        #print(edge)
-        v1, v2, wall = edge
-        #print(ids[v1], ids[v2])
-        if ids[v1] != ids[v2]:
-            print("here")
-            grid[v1[0]][v1[1]] = 1
-            grid[v2[0]][v2[1]] = 1
-            grid[wall[0]][wall[1]] = 1
-            print(grid[v1[0]][v1[1]], grid[v2[0]][v2[1]])
-            union(ids, v1, v2)
-            union(ids, v1, wall)
-    print(grid)
+def divide(solutions, grid, orientation, x, y, width, height, gaps,
+           horizontal_boundary=None, vertical_boundary=None):
+    print("new iteration", orientation)
+    if width <= 3 or height <= 3:
+        print("returning early", width, height)
+        return grid
+
+    horizontal = orientation == 1
+
+    if horizontal:
+        xpos = x
+        px = xpos + random.randrange(width)
+        if vertical_boundary:
+            ypos = random.choice([random.randrange(y+1, vertical_boundary-1),
+                          random.randrange(vertical_boundary+1, height-3)])
+            horizontal_boundary = px
+        else:
+            ypos = y + 1+ random.randrange(height-3)
+        py = ypos
+        dx = 1
+        dy = 0
+        length = width
+        vertical_boundary = None
+    else:
+        ypos = y
+        py = ypos + random.randrange(height)
+        if horizontal_boundary:
+            xpos = random.choice([random.randrange(x+1, horizontal_boundary-1),
+                          random.randrange(horizontal_boundary+1, width-3)])
+            vertical_boundary = py
+        else:
+            xpos = x + 1 + random.randrange(width-3)
+        px = xpos
+        dx = 0
+        dy = 1
+        length = height
+        horizontal_boundary = None
+    # where will the wall be drawn from?
+    # xpos = x + (0 if horizontal else random.randrange(width-2))
+    # ypos = y + (random.randrange(height-2) if horizontal else 0)
+
+    # where will the passage through the wall exist?
+    # px = xpos + (random.randrange(width) if horizontal else 0)
+    # py = ypos + (0 if horizontal else random.randrange(height))
+    gaps.add((px, py))
+
+    # what direction will the wall be drawn?
+    # dx = 1 if horizontal else 0
+    # dy = 0 if horizontal else 1
+
+    # # how long will the wall be?
+    # length = width if horizontal else height
+
+    # what direction is perpendicular to the wall?
+    # dir = 0 if horizontal else 1
+
+    for i in range(length):
+        if (xpos, ypos) not in gaps:
+            print(xpos, ypos)
+            grid[ypos][xpos] = 0
+        xpos += dx
+        ypos += dy
+
+    solutions.append(copy.deepcopy(grid))
+    nx, ny = x, y
+    w, h = [width, ypos-y+1] if horizontal else [xpos-x+1, height]
+    grid = divide(solutions, grid, choose_orientation(w, h), nx, ny, w, h, gaps,
+            horizontal_boundary, vertical_boundary)
+
+    #nx, ny = x, y
+    # nx, ny = [x, py+1] if horizontal else [px+1, y]
+    # w, h = [width, ypos-y+1] if horizontal else [xpos-x+1, height]
+    # grid = divide(solutions, grid, choose_orientation(w, h), nx, ny, w, h, rec+1)
+
+    # nx, ny = [x, ypos+1] if horizontal else [xpos+1, y]
+    # w, h = [width, y+height-ypos-1] if horizontal else [x+width-xpos-1, height]
+    # grid = divide(solutions, grid, choose_orientation(w, h), nx, ny, w, h)
+    #
+    nx, ny = [x, ypos+1] if horizontal else [xpos+1, y]
+    w, h = [width, y+height-ypos-1] if horizontal else [x+width-xpos-1, height]
+    grid = divide(solutions, grid, choose_orientation(w, h), nx, ny, w, h, gaps,
+                 horizontal_boundary, vertical_boundary)
     return grid
-
 
 def MENU_ROW(i):
     return GRID_SIZE[1] + (i-1)*BUTTON_HEIGHT + i*BUTTON_MARGIN
