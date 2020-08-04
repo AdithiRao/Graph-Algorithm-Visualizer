@@ -4,29 +4,30 @@
 @Kanvi
 TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
-TODO: Swarm, bidirectional swarm
-TODO: prebuilt maze feature
+TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me when you get here,
+      I would do everything else first. Maybe just look up bidirectional search
+TODO: Restrict the weights to be -99 to 99
+TODO: Add speed label to the speed slider
+TODO: Make sure target/source cannot be placed on a wall and vice versa
+TODO: Disable moving target/source while running
+TODO: Get scroll bar to work on text box
+TODO: Add x and y axis with numbers 
+TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
+TODO: When adding weights, disable everything else and turn button into done adding weights (no need
+      for two buttons). Also make the textbox only appear then and make it have a smaller width but
+      still be centered
+TODO: Change the icons for start and end (if possible, or else j make prettier)
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
-TODO: Restrict the weights to be -99 to 99
-TODO: Add speed label to the slider
 TODO: Add builtin graphs (one with negative cycles, maze, arbitrary weights)
 TODO: What if the target is no longer reachable because of walls
-TODO: Make sure target/source cannot be placed on a wall and vice versa
 TODO: Somehow increase the max speed
-TODO: Find a cool way to display the more complex algorithms and clarify the usefulness of each one
-TODO: Disable moving target/source while running
 TODO: Add feature to first visit other node
-TODO: Have an info popup showing how to use everything
-TODO: Get scroll bar to work on text box
-TODO: Add x and y axis with numbers
-TODO: When adding weights, disable everything else and turn button into done adding weights
-      Also make the textbox only appear then.
 TODO: Johnsons, Bidirectional search, Floyd–Warshall
 TODO: Send a notification if negative weights are on the graph when not running
-      one of the algos that can handle negative edges-- get lines 164 and down to work
+      one of the algos that can handle negative edges
 TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
       If weights are added- don't allow bfs or dfs to be added
       When the algorith chosen is dijkstras- all negative weights need to be removed
@@ -35,18 +36,7 @@ TODO: Given that most find the shortest path to every node,
       The start node should be fixed in this case
 
 @General
-TODO: When weights are added as a feature, we need to make sure they cannot dfs or bfs
-      cannot be clicked - i don't think this is necessary, they just won't be considered?
-      - Well technically that would be incorrect cuz those algos dont work on weighted
-      graphs so it could confuse a user
 TODO: Stylize main.py and add comments to other files
-TODO: Change the icons for start and end (if possible, or else j make prettier)
-TODO: Make the currently running algorithm reset if either the target or start changes (they
-        should be able to pick up and change source and dest while running)
-TODO: Make the number of grid lines an dynamic feature based on rows and cols
-TODO: ^ Based on this, if the window gets resized during the game, the grid should auto-adjust
-     (make more/less rows and columns)-- By default the screen should be a rectangle though
-TODO: Algos to add: Bellman Ford, Johnsons, Swarm algorithm, bidirectional swarm algorithm
 
 
 '''
