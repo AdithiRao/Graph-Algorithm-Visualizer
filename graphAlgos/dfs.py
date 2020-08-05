@@ -17,16 +17,16 @@ class DFS(GraphSearchBase):
 
         self.finding_shortest_path = True
         if self.stack:
+            self.shortest_path_length += 1
             ((curr_row, curr_col), curr_len) = self.stack[-1]
-            self.shortest_path_length = curr_len + 1
             self.curr_node = (curr_row, curr_col)
+            self.grid_updates()
             if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
                 self.finding_shortest_path = False
                 self.drawing_shortest_path = True
                 return
-            self.grid_updates()
             self.stack.pop()
 
             self.visited_set.add((curr_row, curr_col))

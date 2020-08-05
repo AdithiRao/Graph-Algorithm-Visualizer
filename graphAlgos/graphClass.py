@@ -9,10 +9,14 @@ class GraphSearchBase:
 
         self.curr_node = None
         self.n_node_dir = None
-        self.VISITED_1_STEP_AGO = None
-        self.VISITED_2_STEPS_AGO = None
-        self.VISITED_3_STEPS_AGO = None
-        self.VISITED_A_WHILE_AGO = None
+        self.VISITED = None
+        # self.VISITED_1_STEP_AGO = None
+        # self.VISITED_2_STEPS_AGO = None
+        # self.VISITED_3_STEPS_AGO = None
+        # self.VISITED_4_STEPS_AGO = None
+        # self.VISITED_5_STEPS_AGO = None
+        # self.VISITED_6_STEPS_AGO = None
+        # self.VISITED_A_WHILE_AGO = None
         self.drawing_shortest_path = False
         self.finding_shortest_path = False
         self.shortest_path_length = 0
@@ -20,6 +24,7 @@ class GraphSearchBase:
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
         self.shortest_path = []
+        self.order_visited = []
         self.parents = deepcopy(grid) #will store the coordinates of the parent
 
     def generate_shortest_path(self):
@@ -43,22 +48,37 @@ class GraphSearchBase:
             self.n_node_dir = None
 
     def grid_updates(self):
-        if self.VISITED_A_WHILE_AGO:
-            (row, col) = self.VISITED_A_WHILE_AGO
-            self.grid[row][col] = VISITED_A_WHILE_AGO
-        if self.VISITED_3_STEPS_AGO:
-            (row, col) = self.VISITED_3_STEPS_AGO
-            self.grid[row][col] = VISITED_3_STEPS_AGO
-            self.VISITED_A_WHILE_AGO = self.VISITED_3_STEPS_AGO
-        if self.VISITED_2_STEPS_AGO:
-            (row, col) = self.VISITED_2_STEPS_AGO
-            self.grid[row][col] = VISITED_2_STEPS_AGO
-            self.VISITED_3_STEPS_AGO = self.VISITED_2_STEPS_AGO
-        if self.VISITED_1_STEP_AGO:
-            (row, col) = self.VISITED_1_STEP_AGO
-            self.grid[row][col] = VISITED_1_STEP_AGO
-            self.VISITED_2_STEPS_AGO = self.VISITED_1_STEP_AGO
+        # if self.VISITED_A_WHILE_AGO:
+        #     (row, col) = self.VISITED_A_WHILE_AGO
+        #     self.grid[row][col] = VISITED_A_WHILE_AGO
+        # if self.VISITED_6_STEPS_AGO:
+        #     (row, col) = self.VISITED_6_STEPS_AGO
+        #     self.grid[row][col] = VISITED_6_STEPS_AGO
+        #     self.VISITED_A_WHILE_AGO = self.VISITED_6_STEPS_AGO
+        # if self.VISITED_5_STEPS_AGO:
+        #     (row, col) = self.VISITED_5_STEPS_AGO
+        #     self.grid[row][col] = VISITED_5_STEPS_AGO
+        #     self.VISITED_6_STEPS_AGO = self.VISITED_5_STEPS_AGO
+        # if self.VISITED_4_STEPS_AGO:
+        #     (row, col) = self.VISITED_4_STEPS_AGO
+        #     self.grid[row][col] = VISITED_4_STEPS_AGO
+        #     self.VISITED_5_STEPS_AGO = self.VISITED_4_STEPS_AGO
+        # if self.VISITED_3_STEPS_AGO:
+        #     (row, col) = self.VISITED_3_STEPS_AGO
+        #     self.grid[row][col] = VISITED_3_STEPS_AGO
+        #     self.VISITED_4_STEPS_AGO = self.VISITED_3_STEPS_AGO
+        # if self.VISITED_2_STEPS_AGO:
+        #     (row, col) = self.VISITED_2_STEPS_AGO
+        #     self.grid[row][col] = VISITED_2_STEPS_AGO
+        #     self.VISITED_3_STEPS_AGO = self.VISITED_2_STEPS_AGO
+        # if self.VISITED_1_STEP_AGO:
+        #     (row, col) = self.VISITED_1_STEP_AGO
+        #     self.grid[row][col] = VISITED_1_STEP_AGO
+        #     self.VISITED_2_STEPS_AGO = self.VISITED_1_STEP_AGO
+        if self.VISITED:
+            (row, col) = self.VISITED
+            self.grid[row][col] = VISITED
         if self.curr_node:
             (row, col) = self.curr_node
             self.grid[row][col] = CURR_VISITING
-            self.VISITED_1_STEP_AGO = (row, col)
+            self.VISITED = (row, col)
