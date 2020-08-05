@@ -396,25 +396,41 @@ while not done:
             else:
                 color = COLORS[cell]
 
+            cell_left = (MARGIN + WIDTH) * column + MARGIN
+            cell_top = (MARGIN + HEIGHT) * row + MARGIN
+
             if cell == VISITED:
-                cell_left = (MARGIN + WIDTH) * column + MARGIN
-                cell_top = (MARGIN + HEIGHT) * row + MARGIN
                 (left, top, width, height, step) = sizes_and_steps[row][column]
                 (left, top, width, height, color) = grow(left, top, width, height, step,
                                                         cell_left, cell_top, VISITED)
-                sizes_and_steps[row][column] = (left, top, width, height, step+1)
+                sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_COLOR_STEPS))
                 rect = pygame.Rect(left, top, width, height)
                 if width == WIDTH and height == HEIGHT:
                     draw_rounded_rect(screen, rect, color, 0)
                 else:
                     draw_rounded_rect(screen, rect, color, min(width, height)//3)
-            elif cell == SHORTEST_PATH_NODE:
-                rect = pygame.Rect((MARGIN + WIDTH) * column - 3*MARGIN,
-                                  (MARGIN + HEIGHT) * row - 3*MARGIN,
-                                  WIDTH + 6*MARGIN,
-                                  HEIGHT + 6*MARGIN)
-                draw_rounded_rect(screen, rect, color, 0)
-            else:
+            elif cell == SHORTEST_PATH_NODE and (row, column) != curr_node:
+                target_left = cell_left - 4*MARGIN
+                target_top = cell_top  - 4*MARGIN
+                (left, top, width, height, step) = sizes_and_steps[row][column]
+                if step == NUM_COLOR_STEPS:
+                    (left, top, width, height, step) = base_square(row, column)
+                (left, top, width, height, color) = grow(left, top, width, height, step,
+                                                        target_left, target_top, SHORTEST_PATH_NODE)
+                sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_SP_COLOR_STEPS))
+                # print(row,column)
+                # # if (row,col) = 
+                rect = pygame.Rect(left, top, width, height)
+                if width == WIDTH + 6*MARGIN and height == HEIGHT + 6*MARGIN:
+                    draw_rounded_rect(screen, rect, color, 0)
+                else:
+                    draw_rounded_rect(screen, rect, color, min(width, height)//3)
+                # rect = pygame.Rect((MARGIN + WIDTH) * column - 3*MARGIN,
+                #                   (MARGIN + HEIGHT) * row - 3*MARGIN,
+                #                   WIDTH + 6*MARGIN,
+                #                   HEIGHT + 6*MARGIN)
+                #draw_rounded_rect(screen, rect, color, 0)
+            elif not (curr_alg.running and curr_alg.instance.drawing_shortest_path and (row, column) == curr_node):
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN,
