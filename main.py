@@ -21,11 +21,13 @@ TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
-TODO: Add builtin graphs (one with negative cycles, maze, arbitrary weights)
+TODO: Improve the animation drawing the path
+TODO: drawing the path for dfs
+TODO: Add builtin graphs (one with negative cycles, maze)
 TODO: What if the target is no longer reachable because of walls
 TODO: Somehow increase the max speed
 TODO: Add feature to first visit other node
-TODO: Johnsons, Bidirectional search, Floyd–Warshall
+TODO: Johnsons, Floyd–Warshall
 TODO: Send a notification if negative weights are on the graph when not running
       one of the algos that can handle negative edges
 TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
@@ -42,6 +44,7 @@ TODO: Stylize main.py and add comments to other files
 '''
 import pygame
 import pygame_gui
+
 
 import time
 from constants import *
@@ -66,6 +69,9 @@ clock = pygame.time.Clock()
 
 curr_alg = CurrGraphAlgorithm()
 grid = curr_alg.newGrid(NOT_VISITED) # initialize empty grid
+sizes_and_steps = [[None for _ in range(COLS)] for _ in range(ROWS)]
+init_sizes_and_steps(sizes_and_steps) 
+
 weights = curr_alg.newGrid(1) # initialize weights
 
 font = pygame.font.SysFont('couriernewttf', 2*HEIGHT//3)
@@ -224,6 +230,7 @@ while not done:
                     #     warning_window.show()
                     # else:
                     grid = curr_alg.newGrid(NOT_VISITED)
+                    init_sizes_and_steps(sizes_and_steps)
                     curr_alg.start_algorithm((start_pos, target_pos),
                                                 grid, weights)
                     adding_walls = False
@@ -332,8 +339,8 @@ while not done:
         if curr_alg.instance.drawing_shortest_path:
 
             # set all cells that were visited to same color
-            for row in range(ROWS):
-                grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND else x for x in grid[row]]
+            # for row in range(ROWS):
+            #     grid[row] = [VISITED_A_WHILE_AGO if x != NOT_VISITED and x != SHORTEST_PATH_NODE and x!= FOUND else x for x in grid[row]]
 
             # We are currently drawing the shortest path
             if time_elapsed_since_last_action1 > 0.05:
@@ -351,7 +358,7 @@ while not done:
                 shortest_pweight = curr_alg.instance.shortest_path_length
                 curr_node = curr_alg.instance.curr_node
                 if curr_alg.alg_name == 'Breadth First Search' or curr_alg.alg_name == 'Depth First Search':
-                    info_box.html_text = "Step: {} <br>Now visiting: {}".format(shortest_pweight, curr_node)
+                    info_box.html_text = "Iteration: {} <br>Now visiting: {}".format(shortest_pweight, curr_node)
                 else:
                     info_box.html_text = "Weight: {} <br>Now visiting: {}".format(shortest_pweight, curr_node)
                 info_box.rebuild()
@@ -374,6 +381,7 @@ while not done:
     # Draw the grid
     for row in range(ROWS):
         for column in range(COLS):
+            #need to rewrite this part
             color = WHITE
             pygame.draw.rect(screen,
                              color,
@@ -389,20 +397,31 @@ while not done:
             else:
                 color = COLORS[cell]
 
-            if cell == CURR_VISITING or cell == VISITED_1_STEP_AGO or cell == VISITED_2_STEPS_AGO or cell == VISITED_3_STEPS_AGO:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN + H_OFFSET[cell],
-                                  (MARGIN + HEIGHT) * row + MARGIN + V_OFFSET[cell],
-                                  H_SIZE[cell],
-                                  V_SIZE[cell]])
-            else:
-                pygame.draw.rect(screen,
-                                 color,
-                                 [(MARGIN + WIDTH) * column + MARGIN,
-                                  (MARGIN + HEIGHT) * row + MARGIN,
-                                  WIDTH,
-                                  HEIGHT])
+            if cell == VISITED:
+                cell_left = (MARGIN + WIDTH) * column + MARGIN
+                cell_top = (MARGIN + HEIGHT) * row + MARGIN
+                (left, top, width, height, step) = sizes_and_steps[row][column]
+                (left, top, width, height, color) = grow(left, top, width, height, step,
+                                                        cell_left, cell_top, VISITED)
+                sizes_and_steps[row][column] = (left, top, width, height, step+1)
+                rect = pygame.Rect(left, top, width, height)
+                if width == WIDTH and height == HEIGHT:
+                    draw_rounded_rect(screen, rect, color, 0)
+                else:
+                    draw_rounded_rect(screen, rect, color, min(width, height)//3)
+            elif cell == SHORTEST_PATH_NODE:
+                rect = pygame.Rect((MARGIN + WIDTH) * column - 3*MARGIN,
+                                  (MARGIN + HEIGHT) * row - 3*MARGIN,
+                                  WIDTH + 6*MARGIN,
+                                  HEIGHT + 6*MARGIN)
+                draw_rounded_rect(screen, rect, color, 0)
+            # elif cell != SHORTEST_PATH_NODE:
+            #     pygame.draw.rect(screen,
+            #                      color,
+            #                      [(MARGIN + WIDTH) * column + MARGIN,
+            #                       (MARGIN + HEIGHT) * row + MARGIN,
+            #                       WIDTH,
+            #                       HEIGHT])
 
             if weights[row][column] != 0 and weights[row][column] != 1:
                 surf = font.render(str(weights[row][column]), True, (0,0,0))

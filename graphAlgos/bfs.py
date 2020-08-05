@@ -22,13 +22,13 @@ class BFS(GraphSearchBase):
             (curr_row, curr_col), curr_len = self.queue[0]
             self.shortest_path_length = curr_len + 1
             self.curr_node = (curr_row, curr_col)
-            if self.queue[0] == self.target:
+            self.grid_updates()
+            if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
                 self.finding_shortest_path = False
                 self.drawing_shortest_path = True
                 return
-            self.grid_updates()
             self.queue.popleft()
 
             for dir in self.directions:
@@ -36,7 +36,7 @@ class BFS(GraphSearchBase):
                 curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width and \
                 (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set \
                 and self.walls[curr_row+dir[0]][curr_col+dir[1]] != 0:
-                    self.queue.append(((curr_row+dir[0], curr_col+dir[1]), curr_len))
+                    self.queue.append(((curr_row+dir[0], curr_col+dir[1]), curr_len+1))
                     self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
                     self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
             self.finding_shortest_path = True

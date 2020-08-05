@@ -27,13 +27,13 @@ class DIJKSTRAS(GraphSearchBase):
             curr_weight, (curr_row, curr_col) = self.pq[0]
             self.shortest_path_length = curr_weight
             self.curr_node = (curr_row, curr_col)
+            self.grid_updates()
             if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
                 self.finding_shortest_path = False
                 self.drawing_shortest_path = True
                 return
-            self.grid_updates()
             heappop(self.pq)
             for dir in self.directions:
                 if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \

@@ -1,6 +1,8 @@
 from constants import *
+import pygame.gfxdraw
 import random
 import copy
+import math
 
 def negative_weights(grid):
     neg = False
@@ -121,16 +123,6 @@ def divide(solutions, grid, orientation, x, y, width, height, gaps,
     # py = ypos + (0 if horizontal else random.randrange(height))
     gaps.add((px, py))
 
-    # what direction will the wall be drawn?
-    # dx = 1 if horizontal else 0
-    # dy = 0 if horizontal else 1
-
-    # # how long will the wall be?
-    # length = width if horizontal else height
-
-    # what direction is perpendicular to the wall?
-    # dir = 0 if horizontal else 1
-
     for i in range(length):
         if (xpos, ypos) not in gaps:
             print(xpos, ypos)
@@ -164,3 +156,79 @@ def MENU_ROW(i):
 
 def MENU_COL(i):
     return i*BUTTON_MARGIN + (i-1)*BUTTON_WIDTH
+
+def base_square(row, col):
+    return ((MARGIN + WIDTH) * col + MARGIN + (3*WIDTH)//8, 
+                                        (MARGIN + HEIGHT) * row + MARGIN + (3*HEIGHT)//8, 
+                                        WIDTH//4, 
+                                        HEIGHT//4, 
+                                        0)
+
+def init_sizes_and_steps(sizes_and_steps):
+    for row in range(ROWS):
+        for col in range(COLS):
+            sizes_and_steps[row][col] = base_square(row, col)
+    # return sizes_and_steps
+
+
+def lerp(v0, v1, t):
+    return (max(min(math.floor((1-t)*v0[0]+t*v1[0]), 255), 0), 
+            max(min(math.floor((1-t)*v0[1]+t*v1[1]), 255), 0), 
+            max(min(math.floor((1-t)*v0[2]+t*v1[2]), 255),0))
+    # return (1 - t) * v0 + t * v1
+
+def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach,
+         state):
+    if state == VISITED:
+        if width == WIDTH or height == HEIGHT:
+            return (left, top, WIDTH, HEIGHT, COLORS[DONE_VISITING])
+
+        new_left = max(left-(WIDTH_GROWTH_STEP_SIZE/2), left_pos_to_reach)
+        new_top = max(top-(HEIGHT_GROWTH_STEP_SIZE/2), top_pos_to_reach)
+        new_width = min(width+WIDTH_GROWTH_STEP_SIZE, WIDTH)
+        new_height = min(height+HEIGHT_GROWTH_STEP_SIZE, HEIGHT)
+        
+        rgb = (float(COLORS[VISITED].r), float(COLORS[VISITED].g), float(COLORS[VISITED].b))
+        target_rgb = (float(COLORS[DONE_VISITING].r), float(COLORS[DONE_VISITING].g), float(COLORS[DONE_VISITING].b))
+        new_color = lerp(rgb, target_rgb, step/NUM_COLOR_STEPS)
+        
+        return (new_left, new_top, new_width, new_height, new_color)
+    else: #drawing path
+        if step == NUM_COLOR_STEPS:
+            print("here")
+            new_color = COLORS[SHORTEST_PATH_NODE]
+
+
+#citation: https://stackoverflow.com/questions/61523241/pygame-button-with-rounded-corners-border-radius-argument-does-not-work
+def draw_rounded_rect(surface, rect, color, corner_radius):
+    ''' Draw a rectangle with rounded corners.
+    Would prefer this: 
+        pygame.draw.rect(surface, color, rect, border_radius=corner_radius)
+    but this option is not yet supported in my version of pygame so do it ourselves.
+
+    We use anti-aliased circles to make the corners smoother
+    '''
+    if rect.width < 2 * corner_radius or rect.height < 2 * corner_radius:
+        raise ValueError(f"Both height (rect.height) and width (rect.width) must be > 2 * corner radius ({corner_radius})")
+
+    # need to use anti aliasing circle drawing routines to smooth the corners
+    pygame.gfxdraw.aacircle(surface, rect.left+corner_radius, rect.top+corner_radius, corner_radius, color)
+    pygame.gfxdraw.aacircle(surface, rect.right-corner_radius-1, rect.top+corner_radius, corner_radius, color)
+    pygame.gfxdraw.aacircle(surface, rect.left+corner_radius, rect.bottom-corner_radius-1, corner_radius, color)
+    pygame.gfxdraw.aacircle(surface, rect.right-corner_radius-1, rect.bottom-corner_radius-1, corner_radius, color)
+
+    pygame.gfxdraw.filled_circle(surface, rect.left+corner_radius, rect.top+corner_radius, corner_radius, color)
+    pygame.gfxdraw.filled_circle(surface, rect.right-corner_radius-1, rect.top+corner_radius, corner_radius, color)
+    pygame.gfxdraw.filled_circle(surface, rect.left+corner_radius, rect.bottom-corner_radius-1, corner_radius, color)
+    pygame.gfxdraw.filled_circle(surface, rect.right-corner_radius-1, rect.bottom-corner_radius-1, corner_radius, color)
+
+    rect_tmp = pygame.Rect(rect)
+
+    rect_tmp.width -= 2 * corner_radius
+    rect_tmp.center = rect.center
+    pygame.draw.rect(surface, color, rect_tmp)
+
+    rect_tmp.width = rect.width
+    rect_tmp.height -= 2 * corner_radius
+    rect_tmp.center = rect.center
+    pygame.draw.rect(surface, color, rect_tmp)
