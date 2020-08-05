@@ -231,6 +231,7 @@ while not done:
                     weight_button.disable()
                     clear_weights_walls_button.disable()
                 if event.ui_element == clear_all_button:
+                    curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
                     adding_walls = True
