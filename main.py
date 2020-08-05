@@ -414,13 +414,13 @@ while not done:
                                   WIDTH + 6*MARGIN,
                                   HEIGHT + 6*MARGIN)
                 draw_rounded_rect(screen, rect, color, 0)
-            # elif cell != SHORTEST_PATH_NODE:
-            #     pygame.draw.rect(screen,
-            #                      color,
-            #                      [(MARGIN + WIDTH) * column + MARGIN,
-            #                       (MARGIN + HEIGHT) * row + MARGIN,
-            #                       WIDTH,
-            #                       HEIGHT])
+            else:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN,
+                                  (MARGIN + HEIGHT) * row + MARGIN,
+                                  WIDTH,
+                                  HEIGHT])
 
             if weights[row][column] != 0 and weights[row][column] != 1:
                 surf = font.render(str(weights[row][column]), True, (0,0,0))
