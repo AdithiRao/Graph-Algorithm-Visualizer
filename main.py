@@ -238,7 +238,7 @@ while not done:
                     weight_button.disable()
                     clear_weights_walls_button.disable()
                 if event.ui_element == clear_all_button:
-                    curr_alg = CurrGraphAlgorithm()
+                    #curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
                     adding_walls = True
@@ -296,7 +296,7 @@ while not done:
                         grid[row][column] = TO_WEIGHT
                     else:
                         grid[row][column] = NOT_VISITED
-                if adding_walls:
+                elif adding_walls:
                     if weights[row][column] != 0:
                         weights[row][column] = 0
                     else:
@@ -415,16 +415,16 @@ while not done:
                                   WIDTH + 6*MARGIN,
                                   HEIGHT + 6*MARGIN)
                 draw_rounded_rect(screen, rect, color, 0)
-            # elif cell != SHORTEST_PATH_NODE:
-            #     pygame.draw.rect(screen,
-            #                      color,
-            #                      [(MARGIN + WIDTH) * column + MARGIN,
-            #                       (MARGIN + HEIGHT) * row + MARGIN,
-            #                       WIDTH,
-            #                       HEIGHT])
+            elif cell != SHORTEST_PATH_NODE:
+                pygame.draw.rect(screen,
+                                 color,
+                                 [(MARGIN + WIDTH) * column + MARGIN,
+                                  (MARGIN + HEIGHT) * row + MARGIN,
+                                  WIDTH,
+                                  HEIGHT])
 
-            if weights[row][column] != 0 and weights[row][column] != 1:
-                surf = font.render(str(weights[row][column]), True, (0,0,0))
+            if weight_cell != 0 and weight_cell != 1:
+                surf = font.render(str(weight_cell), True, (0,0,0))
                 rectangle = surf.get_rect()
                 rectangle.center = ((MARGIN + WIDTH) * column + MARGIN + WIDTH/2, (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2)
                 screen.blit(surf, rectangle)
