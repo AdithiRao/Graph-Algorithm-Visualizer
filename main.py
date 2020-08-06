@@ -21,18 +21,12 @@ TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
-TODO: Improve the animation drawing the path
 TODO: drawing the path for dfs
 TODO: Add builtin graphs (one with negative cycles, maze)
 TODO: What if the target is no longer reachable because of walls
 TODO: Somehow increase the max speed
 TODO: Add feature to first visit other node
-TODO: Johnsons, Floyd–Warshall
-TODO: Send a notification if negative weights are on the graph when not running
-      one of the algos that can handle negative edges
-TODO: When the algorithm chosen is bfs or dfs- don't allow weights to be added
-      If weights are added- don't allow bfs or dfs to be added
-      When the algorith chosen is dijkstras- all negative weights need to be removed
+TODO: Johnsons
 TODO: Given that most find the shortest path to every node,
       there should be a way to auto calculate when the target gets moved around.
       The start node should be fixed in this case
@@ -56,7 +50,7 @@ pygame.init()
 screen = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption("Graph Algorithm Visualizer")
 
-manager = pygame_gui.UIManager(WINDOW_SIZE, 'theme.json')
+manager = pygame_gui.UIManager(WINDOW_SIZE, 'theme.json', enable_live_theme_updates=True)
 
 #indicates that the session is still active
 done = False
@@ -167,13 +161,51 @@ heuristics_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(heuri
                         pygame.Rect((MENU_COL(2), MENU_ROW(3)), BUTTON_SIZE),
                         manager=manager)
 heuristics_dropdown.hide()
-# warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
-#                                             (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
-#                                             WARNING_WINDOW_SIZE),
-#                                             html_message="Message",
-#                                             window_title="Warning",
-#                                             manager=manager)
-# warning_window.hide()
+weights_warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
+                                            (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
+                                            WARNING_WINDOW_SIZE),
+                                            html_message="You have selected an search algorithm that "\
+                                                      "does not work with weights. Please clear the "\
+                                                      "weights on the grid or choose a different algorithm.",
+                                            window_title="Weights Not Allowed",
+                                            manager=manager)
+weights_warning_window.hide()
+neg_weights_warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
+                                            (GRID_SIZE[1]-WARNING_WINDOW_SIZE[1])//2),
+                                            WARNING_WINDOW_SIZE),
+                                            html_message="You have selected an search algorithm that"\
+                                                      "does not work with negative weights. Please clear the"\
+                                                      "negative weights on the grid or choose a different algorithm.",
+                                            window_title="Negative Weights Not Allowed",
+                                            manager=manager)
+neg_weights_warning_window.hide()
+
+def enable_all():
+    start_button.enable()
+    algorithms_dropdown.enable()
+    weight_button.enable()
+    clear_all_button.enable()
+    clear_path_button.enable()
+    clear_weights_walls_button.enable()
+    heuristics_dropdown.enable()
+    graphs_dropdown.enable()
+    info_box.enable()
+    step_button.enable()
+    speed_button.enable()
+
+def disable_all():
+    start_button.disable()
+    algorithms_dropdown.disable()
+    weight_button.disable()
+    clear_all_button.disable()
+    clear_path_button.disable()
+    clear_weights_walls_button.disable()
+    heuristics_dropdown.disable()
+    graphs_dropdown.disable()
+    info_box.disable()
+    step_button.disable()
+    speed_button.disable()
+
 # -------- Main Program Loop -----------
 while not done:
     time_delta = clock.tick(60)/1000.0
@@ -214,31 +246,43 @@ while not done:
                 step_button.hide()
 
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == weights_warning_window.dismiss_button or \
+                   event.ui_element == weights_warning_window.close_window_button:
+                    weights_warning_window.hide()
+                    adding_walls = True
+                    enable_all()
+                if event.ui_element == neg_weights_warning_window.dismiss_button or \
+                   event.ui_element == neg_weights_warning_window.close_window_button:
+                    neg_weights_warning_window.hide()
+                    adding_walls = True
+                    enable_all()
                 if event.ui_element == start_button and algo_selected:
-                    # if (not no_weights(weights)) and \
-                    #     algorithms_dropdown.selected_option == "Breadth First Search" or\
-                    #     algorithms_dropdown.selected_option == "Depth First Search":
-                    #     warning_window.html_message = "You have selected an search algorithm that"\
-                    #                                  "does not work with weights. Please clear the"\
-                    #                                  "weights on the grid or choose a different algorithm."
-                    #     warning_window.show()
-                    # elif negative_weights(weights) and \
-                    #     algorithms_dropdown.selected_option == "Dijkstra's" or\
-                    #     algorithms_dropdown.selected_option == "A*: Euclidean Distance" or\
-                    #     algorithms_dropdown.selected_option == "A*: Manhattan Distance":
-                    #     warning_window.html_message = "You have selected an search algorithm that"\
-                    #                                   "does not work with negative weights. Please clear the"\
-                    #                                   "negative weights on the grid or choose a different algorithm."
-                    #     warning_window.show()
-                    # else:
-                    grid = curr_alg.newGrid(NOT_VISITED)
-                    init_sizes_and_steps(sizes_and_steps)
-                    curr_alg.start_algorithm((start_pos, target_pos),
-                                                grid, weights)
-                    adding_walls = False
-                    adding_weights = False
-                    weight_button.disable()
-                    clear_weights_walls_button.disable()
+                    if (not no_weights(weights)) and \
+                        (algorithms_dropdown.selected_option == "Breadth First Search" or\
+                        algorithms_dropdown.selected_option == "Depth First Search"):
+                        weights_warning_window.show()
+                        adding_walls = False
+                        disable_all()
+                        weight_button.disable()
+                        clear_weights_walls_button.disable()
+                    elif negative_weights(weights) and \
+                        algorithms_dropdown.selected_option == "Dijkstra's" or\
+                        algorithms_dropdown.selected_option == "A*: Euclidean Distance" or\
+                        algorithms_dropdown.selected_option == "A*: Manhattan Distance":
+                        neg_weights_warning_window.show()
+                        adding_walls = False
+                        disable_all()
+                        weight_button.disable()
+                        clear_weights_walls_button.disable()
+                    else:
+                        grid = curr_alg.newGrid(NOT_VISITED)
+                        init_sizes_and_steps(sizes_and_steps)
+                        curr_alg.start_algorithm((start_pos, target_pos),
+                                                    grid, weights)
+                        adding_walls = False
+                        adding_weights = False
+                        weight_button.disable()
+                        clear_weights_walls_button.disable()
                 if event.ui_element == clear_all_button:
                     #curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
@@ -421,25 +465,34 @@ while not done:
             else:
                 color = COLORS[cell]
 
+            cell_left = (MARGIN + WIDTH) * column + MARGIN
+            cell_top = (MARGIN + HEIGHT) * row + MARGIN
+
             if cell == VISITED:
-                cell_left = (MARGIN + WIDTH) * column + MARGIN
-                cell_top = (MARGIN + HEIGHT) * row + MARGIN
                 (left, top, width, height, step) = sizes_and_steps[row][column]
                 (left, top, width, height, color) = grow(left, top, width, height, step,
                                                         cell_left, cell_top, VISITED)
-                sizes_and_steps[row][column] = (left, top, width, height, step+1)
+                sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_COLOR_STEPS))
                 rect = pygame.Rect(left, top, width, height)
                 if width == WIDTH and height == HEIGHT:
                     draw_rounded_rect(screen, rect, color, 0)
                 else:
                     draw_rounded_rect(screen, rect, color, min(width, height)//3)
-            elif cell == SHORTEST_PATH_NODE:
-                rect = pygame.Rect((MARGIN + WIDTH) * column - 3*MARGIN,
-                                  (MARGIN + HEIGHT) * row - 3*MARGIN,
-                                  WIDTH + 6*MARGIN,
-                                  HEIGHT + 6*MARGIN)
-                draw_rounded_rect(screen, rect, color, 0)
-            elif cell != SHORTEST_PATH_NODE:
+            elif cell == SHORTEST_PATH_NODE and (row, column) != curr_node:
+                target_left = cell_left - 4*MARGIN
+                target_top = cell_top  - 4*MARGIN
+                (left, top, width, height, step) = sizes_and_steps[row][column]
+                if step == NUM_COLOR_STEPS:
+                    (left, top, width, height, step) = base_square(row, column)
+                (left, top, width, height, color) = grow(left, top, width, height, step,
+                                                        target_left, target_top, SHORTEST_PATH_NODE)
+                sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_SP_COLOR_STEPS))
+                rect = pygame.Rect(left, top, width, height)
+                if width == WIDTH + 6*MARGIN and height == HEIGHT + 6*MARGIN:
+                    draw_rounded_rect(screen, rect, color, 0)
+                else:
+                    draw_rounded_rect(screen, rect, color, min(width, height)//3)
+            elif not (curr_alg.running and curr_alg.instance.drawing_shortest_path and (row, column) == curr_node):
                 pygame.draw.rect(screen,
                                  color,
                                  [(MARGIN + WIDTH) * column + MARGIN,

@@ -185,8 +185,7 @@ def lerp(v0, v1, t):
             max(min(math.floor((1-t)*v0[2]+t*v1[2]), 255),0))
     # return (1 - t) * v0 + t * v1
 
-def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach,
-         state):
+def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach, state):
     if state == VISITED:
         if width == WIDTH or height == HEIGHT:
             return (left, top, WIDTH, HEIGHT, COLORS[DONE_VISITING])
@@ -202,9 +201,14 @@ def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach,
         
         return (new_left, new_top, new_width, new_height, new_color)
     else: #drawing path
-        if step == NUM_COLOR_STEPS:
-            print("here")
-            new_color = COLORS[SHORTEST_PATH_NODE]
+        if width == SP_WIDTH or height == SP_HEIGHT:
+            return (left, top, SP_WIDTH, SP_HEIGHT,  COLORS[SHORTEST_PATH_NODE])
+        
+        new_left = max(left-(WIDTH_SP_GROWTH_STEP_SIZE/2), left_pos_to_reach)
+        new_top = max(top-(HEIGHT_SP_GROWTH_STEP_SIZE/2), top_pos_to_reach)
+        new_width = min(width+WIDTH_SP_GROWTH_STEP_SIZE, SP_WIDTH)
+        new_height = min(height+HEIGHT_SP_GROWTH_STEP_SIZE, SP_HEIGHT)
+        return (new_left, new_top, new_width, new_height, COLORS[SHORTEST_PATH_NODE])
 
 
 #citation: https://stackoverflow.com/questions/61523241/pygame-button-with-rounded-corners-border-radius-argument-does-not-work
