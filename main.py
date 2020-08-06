@@ -85,6 +85,8 @@ building_mazes = []
 adding_walls = True
 speed = 0.001
 step_to_be_made = False
+highlighting = False
+erase_highlighting = False
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's",
                     "A*", "Bellman Ford", "Johnsons", "Greedy BFS"]
@@ -290,21 +292,28 @@ while not done:
                 target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
                 target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
 
-            elif (column < COLS and row < ROWS and column >= 0 and row >= 0):
-                if adding_weights:
-                    if grid[row][column] != TO_WEIGHT:
-                        grid[row][column] = TO_WEIGHT
-                    else:
-                        grid[row][column] = NOT_VISITED
-                elif adding_walls:
-                    if weights[row][column] != 0:
-                        weights[row][column] = 0
-                    else:
-                        weights[row][column] = 1
+            elif check_in_bounds((row, column)):
+                if adding_weights or adding_walls:
+                    if adding_weights:
+                        if grid[row][column] != TO_WEIGHT:
+                            grid[row][column] = TO_WEIGHT
+                            highlighting = True
+                        else:
+                            grid[row][column] = NOT_VISITED
+                            erase_highlighting = True
+                    elif adding_walls:
+                        if weights[row][column] != 0:
+                            weights[row][column] = 0
+                            highlighting = True
+                        else:
+                            weights[row][column] = 1
+                            erase_highlighting = True
 
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
             target_dragging = False
+            highlighting = False
+            erase_highlighting = False
 
         elif event.type == pygame.MOUSEMOTION:
             pos = pygame.mouse.get_pos()
@@ -312,19 +321,34 @@ while not done:
                 start_x = pos[0] + start_offset_x
                 start_y = pos[1] + start_offset_y
                 temp = (start_y // (HEIGHT + MARGIN), start_x // (WIDTH + MARGIN))
-                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS or weights[temp[0]][temp[1]] == 0:
+                if not check_in_bounds(temp) or weights[temp[0]][temp[1]] == 0:
                     start_pos = start_pos
                 else:
                     start_pos = temp
-            if target_dragging:
+            elif target_dragging:
                 target_x = pos[0] + target_offset_x
                 target_y = pos[1] + target_offset_y
                 temp = (target_y // (HEIGHT + MARGIN), target_x // (WIDTH + MARGIN))
-                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS or weights[temp[0]][temp[1]] == 0:
+                if not check_in_bounds(temp) or weights[temp[0]][temp[1]] == 0:
                     target_pos = target_pos
                 else:
                     target_pos = temp
-
+            
+            elif highlighting or erase_highlighting:
+                weight_x = pos[0]
+                weight_y = pos[1]
+                temp = (weight_y // (HEIGHT + MARGIN), weight_x // (WIDTH + MARGIN))
+                if check_in_bounds(temp):
+                    if adding_weights:
+                        if highlighting and grid[temp[0]][temp[1]] != TO_WEIGHT:
+                            grid[temp[0]][temp[1]] = TO_WEIGHT
+                        elif erase_highlighting:
+                            grid[temp[0]][temp[1]] = NOT_VISITED
+                    elif adding_walls:
+                        if highlighting and weights[temp[0]][temp[1]] != 0 and temp != start_pos and temp != target_pos:
+                            weights[temp[0]][temp[1]] = 0
+                        elif erase_highlighting:
+                            weights[temp[0]][temp[1]] = 1
         manager.process_events(event)
 
     manager.update(time_delta)
@@ -461,8 +485,21 @@ while not done:
     # draw start and target nodes
     pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
                        WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
-    pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
-                       WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
+    
+    num_points = 5
+    point_list = []
+    center_x = (MARGIN + WIDTH) * target_pos[1] + WIDTH//2
+    center_y = (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2
+    r = WIDTH // 2
+    angle = 2 * 360/num_points
+    for i in range(num_points):
+        x = r * math.sin(angle * i) + center_x
+        y = r * math.cos(angle * i) + center_y
+        point_list.append((x,y))
+    pygame.draw.polygon(screen, TARGET_COLOR, point_list)
+    
+    # pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
+    #                    WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
     # Limit frames per second
     clock.tick(100)
