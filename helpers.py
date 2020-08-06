@@ -17,7 +17,7 @@ def no_weights(grid):
     no_weights = True
     for row in range(len(grid)):
         for col in range(len(grid[0])):
-            if grid[row][col] != 0 or grid[row][col] != 1:
+            if grid[row][col] != 0 and grid[row][col] != 1:
                 no_weights = False
                 return no_weights
     return no_weights
@@ -193,7 +193,6 @@ def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach, st
         
         return (new_left, new_top, new_width, new_height, new_color)
     else: #drawing path
-        # print(step)
         if width == SP_WIDTH or height == SP_HEIGHT:
             return (left, top, SP_WIDTH, SP_HEIGHT,  COLORS[SHORTEST_PATH_NODE])
         
