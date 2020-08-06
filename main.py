@@ -26,7 +26,7 @@ TODO: Add builtin graphs (one with negative cycles, maze)
 TODO: What if the target is no longer reachable because of walls
 TODO: Somehow increase the max speed
 TODO: Add feature to first visit other node
-TODO: Johnsons, Floyd–Warshall
+TODO: Johnsons
 TODO: Given that most find the shortest path to every node,
       there should be a way to auto calculate when the target gets moved around.
       The start node should be fixed in this case
