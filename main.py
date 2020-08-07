@@ -10,9 +10,7 @@ TODO: Add speed label to the speed slider
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
 TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
-TODO: When adding weights, disable everything else and turn button into done adding weights (no need
-      for two buttons). Also make the textbox only appear then and make it have a smaller width but
-      still be centered
+TODO: redesign menu order/location/sizing
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
@@ -113,10 +111,10 @@ speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygam
                                     start_value=0.001,
                                     value_range=(0.1, 0.001),
                                     manager = manager)
-surf = font.render('Speed', True, (255, 255, 255))
-rectangle = surf.get_rect()
-rectangle.center = (BUTTON_MARGIN*3+ BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN)
-screen.blit(surf, rectangle)
+# surf = font.render('Speed', True, (255, 255, 255))
+# rectangle = surf.get_rect()
+# rectangle.center = (BUTTON_MARGIN*3+ BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN)
+# screen.blit(surf, rectangle)
 
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(4),
                                                     MENU_ROW(1)),
@@ -133,11 +131,8 @@ weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rec
                                             BUTTON_SIZE),
                                             manager=manager)
 weight_text_entry.set_allowed_characters(['-','1','2','3','4','5','6','7','8','9','0'])
-done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(3), MENU_ROW(2)),
-                                            BUTTON_SIZE),
-                                            text='Done Adding Weights',
-                                            manager=manager)
-done_weights_button.disable()
+weight_text_entry.hide()
+
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
                                             relative_rect=pygame.Rect((MENU_COL(4),
                                             MENU_ROW(2)),
@@ -247,12 +242,12 @@ while not done:
                     weights_warning_window.hide()
                     adding_walls = True
                     enable_all()
-                if event.ui_element == neg_weights_warning_window.dismiss_button or \
+                elif event.ui_element == neg_weights_warning_window.dismiss_button or \
                    event.ui_element == neg_weights_warning_window.close_window_button:
                     neg_weights_warning_window.hide()
                     adding_walls = True
                     enable_all()
-                if event.ui_element == start_button and algo_selected:
+                elif event.ui_element == start_button and algo_selected:
                     if (not no_weights(weights)) and \
                         (algorithms_dropdown.selected_option == "Breadth First Search" or\
                         algorithms_dropdown.selected_option == "Depth First Search"):
@@ -287,34 +282,43 @@ while not done:
                     adding_weights = False
                     weight_button.enable()
                     clear_weights_walls_button.enable()
-                if event.ui_element == clear_path_button:
+                elif event.ui_element == clear_path_button:
                     grid = curr_alg.newGrid(NOT_VISITED)
-                if event.ui_element == clear_weights_walls_button:
+                elif event.ui_element == clear_weights_walls_button:
                     weights = curr_alg.newGrid(1)
-                if event.ui_element == weight_button:
-                    adding_weights = True
-                    adding_walls = False
-                    start_button.disable()
-                    weight_button.disable()
-                    done_weights_button.enable()
-                if event.ui_element == done_weights_button and weight_text_entry.get_text() != "":
-                    adding_weights = False
-                    adding_walls = True
-                    weight_button.enable()
-                    start_button.enable()
-                    done_weights_button.disable()
-                    for row in range(ROWS):
-                        for col in range(COLS):
-                            if grid[row][col] == TO_WEIGHT:
-                                weights[row][col] = int(weight_text_entry.get_text())
-                    weight_text_entry.set_text("")
-                    for row in range(ROWS):
-                        grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
+                elif event.ui_element == weight_button:
+                    if not adding_weights:
+                        adding_weights = True
+                        adding_walls = False
+                        start_button.disable()
+                        weight_text_entry.show()
+                        weight_button.set_text("Done")
+                    else:
+                        if weight_text_entry.get_text() == "" or int(weight_text_entry.get_text()) < -99 or int(weight_text_entry.get_text()) > 99:
+                            info_box.html_text = "Enter a weight from -99 to 99"
+                            info_box.rebuild()
+                        else:
+
+                            info_box.html_text = "Run an algorithm!"
+                            info_box.rebuild()
+                            adding_weights = False
+                            adding_walls = True
+                            start_button.enable()
+                            weight_text_entry.hide()
+                            weight_button.set_text("Add Weights")
+                            for row in range(ROWS):
+                                for col in range(COLS):
+                                    if grid[row][col] == TO_WEIGHT:
+                                        weights[row][col] = int(weight_text_entry.get_text())
+                            weight_text_entry.set_text("")
+                            for row in range(ROWS):
+                                grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
+                    
                     # if not no_weights(weights):
                     #
                     # if negative_weights(weights):
 
-                if event.ui_element == step_button:
+                elif event.ui_element == step_button:
                     step_to_be_made = True
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
