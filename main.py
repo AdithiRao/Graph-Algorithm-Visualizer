@@ -2,21 +2,17 @@
 
 '''
 @Kanvi
-TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me when you get here,
       I would do everything else first. Maybe just look up bidirectional search
 TODO: Restrict the weights to be -99 to 99
 TODO: Add speed label to the speed slider
-TODO: Make sure target/source cannot be placed on a wall and vice versa
-TODO: Disable moving target/source while running
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
 TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
 TODO: When adding weights, disable everything else and turn button into done adding weights (no need
       for two buttons). Also make the textbox only appear then and make it have a smaller width but
       still be centered
-TODO: Change the icons for start and end (if possible, or else j make prettier)
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
@@ -536,21 +532,31 @@ while not done:
 
 
     # draw start and target nodes
-    pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
-                       WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
+
+    center_x = (MARGIN + WIDTH) * start_pos[1] + WIDTH//2
+    center_y = (MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2
+    points = [(center_x, center_y),(center_x - WIDTH // 2, center_y - HEIGHT // 2),(center_x + WIDTH // 2, center_y), (center_x - WIDTH // 2, center_y + HEIGHT // 2)]
+    pygame.draw.polygon(screen, START_COLOR, points)
+
+    # pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
+    #                    WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
     
+    # target star code
     num_points = 5
-    point_list = []
+    points = []
     center_x = (MARGIN + WIDTH) * target_pos[1] + WIDTH//2
     center_y = (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2
-    r = WIDTH // 2
-    angle = 2 * 360/num_points
-    for i in range(num_points):
-        x = r * math.sin(angle * i) + center_x
-        y = r * math.cos(angle * i) + center_y
-        point_list.append((x,y))
-    pygame.draw.polygon(screen, TARGET_COLOR, point_list)
-    
+    angle = (360/num_points) * 2
+    for i in range(num_points*2 + 2):
+        r = WIDTH/2
+        if i % 2 == 0:
+            r = r // 2 
+        x = r * math.cos(angle * i) + center_x
+        y = r * math.sin(angle * i) + center_y
+        points.append((x,y))
+    pygame.draw.polygon(screen, TARGET_COLOR, points)
+
+    # target circle code
     # pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
     #                    WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
