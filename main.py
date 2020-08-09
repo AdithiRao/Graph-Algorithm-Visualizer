@@ -8,19 +8,18 @@ TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me
 TODO: Add speed label to the speed slider
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
-
+TODO: Allow the algo to be cleared in the middle (which would stop it)
 TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
 TODO: redesign menu order/location/sizing
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
-TODO: Deal with case where the target is moved into an unreachable spot
-TODO: Path should be cleared before being allowed to change algos
-TODO: FIx a*, not working with the weights
+TODO: DFS is broken- fix
+TODO: FIx a*- target should not be movable; not working with the weights
 TODO: drawing the path for dfs
 TODO: If there were weights before and no longer are, need to address
-TODO: Add builtin graphs (one with negative cycles, maze)
+TODO: Add builtin graphs (one with negative cycles, maze, unreachable areas)
 TODO: Somehow increase the max speed
 TODO: Add feature to first visit other node
 TODO: Johnsons
@@ -208,6 +207,7 @@ while not done:
                 if event.ui_element == algorithms_dropdown and not adding_weights:
                     algo_selected = True
                     start_button.enable()
+                    grid = curr_alg.newGrid(NOT_VISITED)
                     curr_alg.update_description(algorithms_dropdown.selected_option)
                     curr_alg.instance = None
                     if algorithms_dropdown.selected_option == "A*" or \
@@ -451,7 +451,13 @@ while not done:
         start_dragging = False 
     if not curr_alg.running and curr_alg.alg_chosen and not no_weights(grid) and curr_alg.instance and target_pos != curr_alg.instance.target:
         if curr_alg.alg_name != "A*" and curr_alg.alg_name != "Greedy BFS":
-            curr_alg.instance.new_target(target_pos)
+            shortest_pweight = curr_alg.instance.shortest_path_length
+            if curr_alg.instance.new_target(target_pos): #this recalculates this way too often
+                info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
+                info_box.rebuild()
+            else:
+                info_box.html_text = "The target node could not be reached from the source vertex."
+                info_box.rebuild()
             grid = curr_alg.instance.grid
         else: #For heuristic based algorithms it does not make sense to set a new target
             target_dragging = False
