@@ -1,6 +1,6 @@
 from pygame import Color
 
-GRID_SIZE = [1052, 300]
+GRID_SIZE = [1052, 400]
 
 MENU_HEIGHT = 270
 

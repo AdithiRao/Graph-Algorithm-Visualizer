@@ -1,8 +1,25 @@
 from constants import *
 import pygame.gfxdraw
 import random
-import copy
 import math
+import copy
+
+def no_weights(grid):
+    no_weight = True
+    for row in range(len(grid)):
+        for col in range(len(grid[0])):
+            if grid[row][col] != 0 or grid[row][col] != 1:
+                no_weight = False
+                return no_weight
+    return no_weight
+
+def check_in_bounds(point):
+    row = point[0]
+    column = point[1]
+    if column < COLS and row < ROWS and column >= 0 and row >= 0:
+        return True
+    else:
+        return False
 
 def negative_weights(grid):
     neg = False
@@ -12,15 +29,6 @@ def negative_weights(grid):
                 neg = True
                 return neg
     return neg
-
-def no_weights(grid):
-    no_weights = True
-    for row in range(len(grid)):
-        for col in range(len(grid[0])):
-            if grid[row][col] != 0 and grid[row][col] != 1:
-                no_weights = False
-                return no_weights
-    return no_weights
 
 def arb_pos_weights():
     return [[random.randrange(1,99,1) for col in range(COLS)] for row in range(ROWS)]

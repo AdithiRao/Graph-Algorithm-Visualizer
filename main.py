@@ -2,15 +2,15 @@
 
 '''
 @Kanvi
-TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me when you get here,
       I would do everything else first. Maybe just look up bidirectional search
 TODO: Add speed label to the speed slider
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
-TODO: Have an info popup showing how to use everything 
-TODO: Change the icons for start and end (if possible, or else j make prettier)
+
+TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
+TODO: redesign menu order/location/sizing
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
@@ -73,6 +73,8 @@ building_mazes = []
 adding_walls = True
 speed = 0.001
 step_to_be_made = False
+highlighting = False
+erase_highlighting = False
 
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's",
                     "A*", "Bellman Ford", "Johnsons", "Greedy BFS"]
@@ -128,11 +130,7 @@ weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rec
 weight_text_entry.set_allowed_characters(['-','1','2','3','4','5','6','7','8','9','0'])
 weight_text_entry.set_text_length_limit(3)
 weight_text_entry.hide()
-done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(1), MENU_ROW(2)),
-                                            BUTTON_SIZE),
-                                            text='Done Adding Weights',
-                                            manager=manager)
-done_weights_button.hide()
+
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
                                             relative_rect=pygame.Rect((MENU_COL(4),
                                             MENU_ROW(2)),
@@ -244,12 +242,12 @@ while not done:
                     weights_warning_window.hide()
                     adding_walls = True
                     enable_all()
-                if event.ui_element == neg_weights_warning_window.dismiss_button or \
+                elif event.ui_element == neg_weights_warning_window.dismiss_button or \
                    event.ui_element == neg_weights_warning_window.close_window_button:
                     neg_weights_warning_window.hide()
                     adding_walls = True
                     enable_all()
-                if event.ui_element == start_button and algo_selected:
+                elif event.ui_element == start_button and algo_selected:
                     if (not no_weights(weights)) and \
                         (algorithms_dropdown.selected_option == "Breadth First Search" or\
                         algorithms_dropdown.selected_option == "Depth First Search"):
@@ -277,42 +275,48 @@ while not done:
                         weight_button.disable()
                         clear_weights_walls_button.disable()
                 if event.ui_element == clear_all_button:
+                    #curr_alg = CurrGraphAlgorithm()
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
                     adding_walls = True
                     adding_weights = False
                     weight_button.enable()
                     clear_weights_walls_button.enable()
-                if event.ui_element == clear_path_button:
+                elif event.ui_element == clear_path_button:
                     grid = curr_alg.newGrid(NOT_VISITED)
-                if event.ui_element == clear_weights_walls_button:
+                elif event.ui_element == clear_weights_walls_button:
                     weights = curr_alg.newGrid(1)
-                if event.ui_element == weight_button:
-                    adding_weights = True
-                    adding_walls = False
-                    start_button.disable()
-                    weight_button.hide()
-                    weight_text_entry.show()
-                    done_weights_button.show()
-                if event.ui_element == done_weights_button and weight_text_entry.get_text() != "":
-                    adding_weights = False
-                    adding_walls = True
-                    done_weights_button.hide()
-                    weight_text_entry.hide()
-                    weight_button.show()
-                    start_button.enable()
-                    for row in range(ROWS):
-                        for col in range(COLS):
-                            if grid[row][col] == TO_WEIGHT:
-                                weights[row][col] = int(weight_text_entry.get_text())
-                    weight_text_entry.set_text("")
-                    for row in range(ROWS):
-                        grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
-                    # if not no_weights(weights):
-                    #
-                    # if negative_weights(weights):
+                elif event.ui_element == weight_button:
+                    if not adding_weights:
+                        adding_weights = True
+                        adding_walls = False
+                        start_button.disable()
+                        weight_text_entry.show()
+                        weight_button.set_text("Done")
+                    else:
+                        if weight_text_entry.get_text() == "" or int(weight_text_entry.get_text()) < -99 or int(weight_text_entry.get_text()) > 99:
+                            info_box.html_text = "Enter a weight from -99 to 99"
+                            info_box.rebuild()
+                        else:
 
-                if event.ui_element == step_button:
+                            info_box.html_text = "Run an algorithm!"
+                            info_box.rebuild()
+                            adding_weights = False
+                            adding_walls = True
+                            start_button.enable()
+                            weight_text_entry.hide()
+                            weight_button.set_text("Add Weights")
+                            for row in range(ROWS):
+                                for col in range(COLS):
+                                    if grid[row][col] == TO_WEIGHT:
+                                        weights[row][col] = int(weight_text_entry.get_text())
+                            weight_text_entry.set_text("")
+                            for row in range(ROWS):
+                                grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
+
+                
+
+                elif event.ui_element == step_button:
                     step_to_be_made = True
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -330,21 +334,28 @@ while not done:
                 target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
                 target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
 
-            elif (column < COLS and row < ROWS and column >= 0 and row >= 0):
-                if adding_weights:
-                    if grid[row][column] != TO_WEIGHT:
-                        grid[row][column] = TO_WEIGHT
-                    else:
-                        grid[row][column] = NOT_VISITED
-                if adding_walls:
-                    if weights[row][column] != 0:
-                        weights[row][column] = 0
-                    else:
-                        weights[row][column] = 1
+            elif check_in_bounds((row, column)):
+                if adding_weights or adding_walls:
+                    if adding_weights:
+                        if grid[row][column] != TO_WEIGHT:
+                            grid[row][column] = TO_WEIGHT
+                            highlighting = True
+                        else:
+                            grid[row][column] = NOT_VISITED
+                            erase_highlighting = True
+                    elif adding_walls:
+                        if weights[row][column] != 0:
+                            weights[row][column] = 0
+                            highlighting = True
+                        else:
+                            weights[row][column] = 1
+                            erase_highlighting = True
 
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
             target_dragging = False
+            highlighting = False
+            erase_highlighting = False
 
         elif event.type == pygame.MOUSEMOTION:
             pos = pygame.mouse.get_pos()
@@ -352,19 +363,34 @@ while not done:
                 start_x = pos[0] + start_offset_x
                 start_y = pos[1] + start_offset_y
                 temp = (start_y // (HEIGHT + MARGIN), start_x // (WIDTH + MARGIN))
-                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS or weights[temp[0]][temp[1]] == 0:
+                if not check_in_bounds(temp) or weights[temp[0]][temp[1]] == 0:
                     start_pos = start_pos
                 else:
                     start_pos = temp
-            if target_dragging:
+            elif target_dragging:
                 target_x = pos[0] + target_offset_x
                 target_y = pos[1] + target_offset_y
                 temp = (target_y // (HEIGHT + MARGIN), target_x // (WIDTH + MARGIN))
-                if temp[0] < 0 or temp[1] < 0 or temp[0] >= ROWS or temp[1] >= COLS or weights[temp[0]][temp[1]] == 0:
+                if not check_in_bounds(temp) or weights[temp[0]][temp[1]] == 0:
                     target_pos = target_pos
                 else:
                     target_pos = temp
-
+            
+            elif highlighting or erase_highlighting:
+                weight_x = pos[0]
+                weight_y = pos[1]
+                temp = (weight_y // (HEIGHT + MARGIN), weight_x // (WIDTH + MARGIN))
+                if check_in_bounds(temp):
+                    if adding_weights:
+                        if highlighting and grid[temp[0]][temp[1]] != TO_WEIGHT:
+                            grid[temp[0]][temp[1]] = TO_WEIGHT
+                        elif erase_highlighting:
+                            grid[temp[0]][temp[1]] = NOT_VISITED
+                    elif adding_walls:
+                        if highlighting and weights[temp[0]][temp[1]] != 0 and temp != start_pos and temp != target_pos:
+                            weights[temp[0]][temp[1]] = 0
+                        elif erase_highlighting:
+                            weights[temp[0]][temp[1]] = 1
         manager.process_events(event)
 
     manager.update(time_delta)
@@ -488,8 +514,8 @@ while not done:
                                   WIDTH,
                                   HEIGHT])
 
-            if weights[row][column] != 0 and weights[row][column] != 1:
-                surf = font.render(str(weights[row][column]), True, (0,0,0))
+            if weight_cell != 0 and weight_cell != 1:
+                surf = font.render(str(weight_cell), True, (0,0,0))
                 rectangle = surf.get_rect()
                 rectangle.center = ((MARGIN + WIDTH) * column + MARGIN + WIDTH/2, (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2)
                 screen.blit(surf, rectangle)
@@ -524,10 +550,33 @@ while not done:
 
 
     # draw start and target nodes
-    pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
-                       WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
-    pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
-                       WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
+
+    center_x = (MARGIN + WIDTH) * start_pos[1] + WIDTH//2
+    center_y = (MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2
+    points = [(center_x, center_y),(center_x - WIDTH // 2, center_y - HEIGHT // 2),(center_x + WIDTH // 2, center_y), (center_x - WIDTH // 2, center_y + HEIGHT // 2)]
+    pygame.draw.polygon(screen, START_COLOR, points)
+
+    # pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
+    #                    WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
+    
+    # target star code
+    num_points = 5
+    points = []
+    center_x = (MARGIN + WIDTH) * target_pos[1] + WIDTH//2
+    center_y = (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2
+    angle = (360/num_points) * 2
+    for i in range(num_points*2 + 2):
+        r = WIDTH/2
+        if i % 2 == 0:
+            r = r // 2 
+        x = r * math.cos(angle * i) + center_x
+        y = r * math.sin(angle * i) + center_y
+        points.append((x,y))
+    pygame.draw.polygon(screen, TARGET_COLOR, points)
+
+    # target circle code
+    # pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
+    #                    WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
     # Limit frames per second
     clock.tick(100)
