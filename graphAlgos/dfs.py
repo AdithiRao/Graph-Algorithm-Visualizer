@@ -8,6 +8,23 @@ class DFS(GraphSearchBase):
         self.stack = [(start,0)]
         self.walls = walls
 
+    def finish(self):
+        grid_height = len(self.grid)
+        grid_width = len(self.grid[0])
+        while self.stack:
+            ((curr_row, curr_col), curr_len) = self.stack[-1]
+            self.curr_node = (curr_row, curr_col)
+            self.order_visited.append(self.curr_node)
+
+            self.visited_set.add((curr_row, curr_col))
+            for dir in self.directions:
+                if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
+                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width \
+                and self.walls[curr_row+dir[0]][curr_col+dir[1]] != 0 \
+                and (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set:
+                        self.stack.append(((curr_row+dir[0], curr_col+dir[1]), curr_len))
+                        self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
+
     def one_step(self):
         grid_height = len(self.grid)
         grid_width = len(self.grid[0])
@@ -20,12 +37,15 @@ class DFS(GraphSearchBase):
             self.shortest_path_length += 1
             ((curr_row, curr_col), curr_len) = self.stack[-1]
             self.curr_node = (curr_row, curr_col)
+            self.order_visited.append(self.curr_node)
             self.grid_updates()
             if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
                 self.finding_shortest_path = False
                 self.drawing_shortest_path = True
+                self.found = True
+                self.finish()
                 return
             self.stack.pop()
 

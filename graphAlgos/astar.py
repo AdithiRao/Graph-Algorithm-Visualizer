@@ -25,12 +25,14 @@ class ASTAR(GraphSearchBase):
             _, (curr_row, curr_col), curr_weight = self.pq[0]
             self.shortest_path_length = curr_weight
             self.curr_node = (curr_row, curr_col)
+            self.order_visited.append(self.curr_node)
             self.grid_updates()
             if (curr_row, curr_col) == self.target:
                 self.grid[curr_row][curr_col] = FOUND
                 self.generate_shortest_path()
                 self.finding_shortest_path = False
                 self.drawing_shortest_path = True
+                self.found = True
                 return
             heappop(self.pq)
 

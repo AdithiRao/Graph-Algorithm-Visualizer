@@ -1,4 +1,5 @@
 from graphAlgos.graphClass import GraphSearchBase
+from constants import FOUND
 
 class BELLMANFORD(GraphSearchBase):
     def __init__(self, start, target, grid, weights):
@@ -9,7 +10,8 @@ class BELLMANFORD(GraphSearchBase):
         self.num_vertices = len(self.vertex_dists)
         self.iteration = 0
         self.neg_cycle = False
-        self.vertices_to_process = []
+        self.vertices_to_process = [start]
+        self.order_visited.append(start)
         self.shortest_path_length_thusfar = None
 
     def get_vertices(self, weights):
@@ -20,6 +22,13 @@ class BELLMANFORD(GraphSearchBase):
                 if weights[row][col] != 0:
                     vertices[(row, col)] = float('inf')
         return vertices
+
+    def finish(self):
+        while self.one_round() != []:
+            print("hi")
+            continue
+        self.grid_updates()
+        print("finished", self.iteration)
 
     def one_round(self):
         grid_height = len(self.grid)
@@ -46,11 +55,9 @@ class BELLMANFORD(GraphSearchBase):
                     if new_vertex_dists[vertex] == new_weight and new_weight != float('inf'):
                         self.parents[curr_row][curr_col] = in_neighbor
             if new_vertex_dists[vertex] != float('inf') and new_vertex_dists[vertex] != og_weight:
+                self.order_visited.append(vertex)
                 vertices_to_process.append(vertex)
-        if new_vertex_dists == self.vertex_dists: #no change
-            self.finding_shortest_path = False
-            self.drawing_shortest_path = True
-            self.generate_shortest_path()
+        if new_vertex_dists == self.vertex_dists: #no change, then we are done
             return []
         self.vertex_dists = new_vertex_dists
         return vertices_to_process
@@ -68,4 +75,12 @@ class BELLMANFORD(GraphSearchBase):
             self.finding_shortest_path = True
             self.curr_node = self.vertices_to_process.pop()
             self.shortest_path_length_thusfar = self.vertex_dists[self.curr_node]
+            if self.curr_node == self.target:
+                self.grid[self.curr_node[0]][self.curr_node[1]] = FOUND
+                self.generate_shortest_path()
+                self.finding_shortest_path = False
+                self.drawing_shortest_path = True
+                self.found = True
+                self.finish()
+                return
             self.grid_updates()

@@ -12,6 +12,7 @@ class GraphSearchBase:
         self.VISITED = None
         self.drawing_shortest_path = False
         self.finding_shortest_path = False
+        self.found = False
         self.shortest_path_length = 0
 
         self.visited_set = set()
@@ -19,6 +20,19 @@ class GraphSearchBase:
         self.shortest_path = []
         self.order_visited = []
         self.parents = deepcopy(grid) #will store the coordinates of the parent
+
+    def new_target(self, target):
+        self.target = target
+        curr_node_index = 0
+        self.grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+        while self.order_visited[curr_node_index] != target:
+            curr_row, curr_col = self.order_visited[curr_node_index]
+            self.grid[curr_row][curr_col] = VISITED
+            curr_node_index += 1
+        self.shortest_path = []
+        self.generate_shortest_path()
+        for node_r, node_c in self.shortest_path:
+            self.grid[node_r][node_c] = SHORTEST_PATH_NODE
 
     def generate_shortest_path(self):
         node_x, node_y = self.target
