@@ -6,30 +6,24 @@ TODO: Drag to highlight and enter weights into cells
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me when you get here,
       I would do everything else first. Maybe just look up bidirectional search
-TODO: Restrict the weights to be -99 to 99
 TODO: Add speed label to the speed slider
-TODO: Make sure target/source cannot be placed on a wall and vice versa
-TODO: Disable moving target/source while running
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
-TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
-TODO: When adding weights, disable everything else and turn button into done adding weights (no need
-      for two buttons). Also make the textbox only appear then and make it have a smaller width but
-      still be centered
+TODO: Have an info popup showing how to use everything 
 TODO: Change the icons for start and end (if possible, or else j make prettier)
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
+TODO: Deal with case where the target is moved into an unreachable spot
+TODO: Path should be cleared before being allowed to change algos
+TODO: FIx a*, not working with the weights
 TODO: drawing the path for dfs
+TODO: If there were weights before and no longer are, need to address
 TODO: Add builtin graphs (one with negative cycles, maze)
-TODO: What if the target is no longer reachable because of walls
 TODO: Somehow increase the max speed
 TODO: Add feature to first visit other node
 TODO: Johnsons
-TODO: Given that most find the shortest path to every node,
-      there should be a way to auto calculate when the target gets moved around.
-      The start node should be fixed in this case
 
 @General
 TODO: Stylize main.py and add comments to other files
@@ -115,10 +109,6 @@ speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygam
                                     start_value=0.001,
                                     value_range=(0.1, 0.001),
                                     manager = manager)
-surf = font.render('Speed', True, (255, 255, 255))
-rectangle = surf.get_rect()
-rectangle.center = (BUTTON_MARGIN*3+ BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN)
-screen.blit(surf, rectangle)
 
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(4),
                                                     MENU_ROW(1)),
@@ -131,15 +121,18 @@ weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL
                                             BUTTON_SIZE),
                                             text='Add Weights',
                                             manager=manager)
-weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((MENU_COL(2), MENU_ROW(2)),
-                                            BUTTON_SIZE),
+weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((MENU_COL(2)+BUTTON_WIDTH//2 - WEIGHT_TEXTBOX_SIZE[0]//2, 
+                                            MENU_ROW(2)+BUTTON_HEIGHT//5),
+                                            WEIGHT_TEXTBOX_SIZE),
                                             manager=manager)
 weight_text_entry.set_allowed_characters(['-','1','2','3','4','5','6','7','8','9','0'])
-done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(3), MENU_ROW(2)),
+weight_text_entry.set_text_length_limit(3)
+weight_text_entry.hide()
+done_weights_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(1), MENU_ROW(2)),
                                             BUTTON_SIZE),
                                             text='Done Adding Weights',
                                             manager=manager)
-done_weights_button.disable()
+done_weights_button.hide()
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
                                             relative_rect=pygame.Rect((MENU_COL(4),
                                             MENU_ROW(2)),
@@ -177,6 +170,7 @@ neg_weights_warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect
                                             window_title="Negative Weights Not Allowed",
                                             manager=manager)
 neg_weights_warning_window.hide()
+
 
 def enable_all():
     start_button.enable()
@@ -217,6 +211,7 @@ while not done:
                     algo_selected = True
                     start_button.enable()
                     curr_alg.update_description(algorithms_dropdown.selected_option)
+                    curr_alg.instance = None
                     if algorithms_dropdown.selected_option == "A*" or \
                         algorithms_dropdown.selected_option == "Greedy BFS":
                         heuristics_dropdown.show()
@@ -296,14 +291,16 @@ while not done:
                     adding_weights = True
                     adding_walls = False
                     start_button.disable()
-                    weight_button.disable()
-                    done_weights_button.enable()
+                    weight_button.hide()
+                    weight_text_entry.show()
+                    done_weights_button.show()
                 if event.ui_element == done_weights_button and weight_text_entry.get_text() != "":
                     adding_weights = False
                     adding_walls = True
-                    weight_button.enable()
+                    done_weights_button.hide()
+                    weight_text_entry.hide()
+                    weight_button.show()
                     start_button.enable()
-                    done_weights_button.disable()
                     for row in range(ROWS):
                         for col in range(COLS):
                             if grid[row][col] == TO_WEIGHT:
@@ -393,8 +390,6 @@ while not done:
                 time_elapsed_since_last_action1 = 0
                 info_box.html_text = "Now drawing shortest path of weight/length {}".format(shortest_pweight)
                 info_box.rebuild()
-            if not curr_alg.instance.drawing_shortest_path:
-                curr_alg.algorithm_done()
         else: #either needs to start or already started calculating the shortest path
             if speed != 0.1 or step_to_be_made:
                 curr_alg.instance.one_step()
@@ -410,12 +405,30 @@ while not done:
                 else:
                     step_to_be_made = False
         grid = curr_alg.instance.grid
-    elif not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance:
-        info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
-        info_box.rebuild()
+    elif not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance: #logic doesn't work
+        if curr_alg.instance.found:
+            info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
+            info_box.rebuild()
+        else:
+            info_box.html_text = "The target node could not be reached from the source vertex."
+            info_box.rebuild()
     elif not curr_alg.running and curr_alg.alg_chosen:
         info_box.html_text = curr_alg.description
         info_box.rebuild()
+
+    if curr_alg.instance and curr_alg.running and not curr_alg.instance.drawing_shortest_path and not curr_alg.instance.finding_shortest_path:
+        curr_alg.algorithm_done()
+
+    #If there was an algorithm running before and the graph is not empty and the target has changed
+    #  Then call new_target(target) -> can always check if target == curr_alg.instance.target
+    if not curr_alg.running and curr_alg.alg_chosen and (not no_weights(grid)) and curr_alg.alg_name != "Johnsons":
+        start_dragging = False 
+    if not curr_alg.running and curr_alg.alg_chosen and not no_weights(grid) and curr_alg.instance and target_pos != curr_alg.instance.target:
+        if curr_alg.alg_name != "A*" and curr_alg.alg_name != "Greedy BFS":
+            curr_alg.instance.new_target(target_pos)
+            grid = curr_alg.instance.grid
+        else: #For heuristic based algorithms it does not make sense to set a new target
+            target_dragging = False
 
 
     # Set the screen background
