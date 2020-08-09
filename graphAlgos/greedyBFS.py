@@ -27,11 +27,7 @@ class GREEDYBFS(GraphSearchBase):
             self.order_visited.append(self.curr_node)
             self.grid_updates()
             if (curr_row, curr_col) == self.target:
-                self.grid[curr_row][curr_col] = FOUND
-                self.generate_shortest_path()
-                self.finding_shortest_path = False
-                self.drawing_shortest_path = True
-                self.found = True
+                self.done()
                 return
             heappop(self.pq)
 

@@ -25,10 +25,8 @@ class BELLMANFORD(GraphSearchBase):
 
     def finish(self):
         while self.one_round() != []:
-            print("hi")
             continue
         self.grid_updates()
-        print("finished", self.iteration)
 
     def one_round(self):
         grid_height = len(self.grid)
@@ -76,11 +74,6 @@ class BELLMANFORD(GraphSearchBase):
             self.curr_node = self.vertices_to_process.pop()
             self.shortest_path_length_thusfar = self.vertex_dists[self.curr_node]
             if self.curr_node == self.target:
-                self.grid[self.curr_node[0]][self.curr_node[1]] = FOUND
-                self.generate_shortest_path()
-                self.finding_shortest_path = False
-                self.drawing_shortest_path = True
-                self.found = True
-                self.finish()
+                self.done()
                 return
             self.grid_updates()
