@@ -62,6 +62,7 @@ COLORS[WALL] = Color("#007e80")
 # start and target node variables
 START_COLOR = Color("#f3c9e4")
 TARGET_COLOR = Color("#10a0cc")
+PICKUP_COLOR = Color("#ff6600")
 
 ARROW_COLOR = Color("#05ffe6")
 

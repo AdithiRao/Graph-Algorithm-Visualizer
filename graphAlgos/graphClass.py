@@ -2,10 +2,12 @@ from copy import deepcopy
 from constants import *
 
 class GraphSearchBase:
-    def __init__(self, start, target, grid):
+    def __init__(self, start, target, pickup, grid, weights):
         self.grid = grid
         self.start = start
+        self.pickup = pickup
         self.target = target
+        self.weights = weights
 
         self.curr_node = None
         self.n_node_dir = None
@@ -17,11 +19,21 @@ class GraphSearchBase:
 
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
+        self.grid_height = len(self.grid)
+        self.grid_width = len(self.grid[0])
         self.shortest_path = []
         self.order_visited = []
-        self.weights = []
         self.walls = []
         self.parents = deepcopy(grid) #will store the coordinates of the parent
+
+    def within_boundaries(self, row, col):
+        return row >= 0 and row < self.grid_height and \
+                col >= 0 and col < self.grid_width \
+                and self.weights[row][col] != 0 
+
+    def valid_to_visit(self, row, col):
+        return self.within_boundaries(row, col) and \
+                (row, col) not in self.visited_set
 
     def done(self):
         curr_row, curr_col = self.target

@@ -2,9 +2,8 @@ from graphAlgos.graphClass import GraphSearchBase
 from constants import FOUND
 
 class BELLMANFORD(GraphSearchBase):
-    def __init__(self, start, target, grid, weights):
-        super().__init__(start, target, grid)
-        self.weights = weights
+    def __init__(self, start, target, pickup, grid, weights):
+        super().__init__(start, target, pickup, grid, weights)
         self.vertex_dists = self.get_vertices(weights)
         self.vertex_dists[start] = 0
         self.num_vertices = len(self.vertex_dists)
@@ -29,8 +28,6 @@ class BELLMANFORD(GraphSearchBase):
         self.grid_updates()
 
     def one_round(self):
-        grid_height = len(self.grid)
-        grid_width = len(self.grid[0])
         self.iteration += 1
         if self.iteration > self.num_vertices:
             self.neg_cycle = True
@@ -44,9 +41,7 @@ class BELLMANFORD(GraphSearchBase):
             new_vertex_dists[vertex] = self.vertex_dists[vertex]
             for dir in self.directions:
                 in_neighbor = (curr_row+dir[0], curr_col+dir[1])
-                if in_neighbor[0] >= 0 and in_neighbor[0] < grid_height and \
-                in_neighbor[1] >= 0 and in_neighbor[1] < grid_width and \
-                self.weights[in_neighbor[0]][in_neighbor[1]] != 0:
+                if self.within_boundaries(in_neighbor[0], in_neighbor[1]):
                     new_weight = self.vertex_dists[(in_neighbor[0],in_neighbor[1])]+self.weights[vertex[0]][vertex[1]]
                     new_vertex_dists[vertex] = min(new_vertex_dists[vertex],
                                                    new_weight)

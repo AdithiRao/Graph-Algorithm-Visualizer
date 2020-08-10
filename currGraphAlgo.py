@@ -49,26 +49,27 @@ class CurrGraphAlgorithm():
 
     def start_algorithm(self, params, grid, weights):
         self.running = True
-        (start, target) = params
+        (start, target, pickup) = params
         if self.heuristic == "Heuristic: Euclidean Dst.":
             heuristic = lambda r,c: math.sqrt((target[0]-r)**2 + (target[1]-c)**2)
         elif self.heuristic == "Heuristic: Manhattan Dst.":
             heuristic = lambda r,c: abs(target[0]-r) + abs(target[1]-c)
-
+        if pickup == (-1, -1):
+            pickup = None
         if self.alg_name == "Breadth First Search":
-            self.instance = BFS(start, target, grid, weights) #weights will j be walls
+            self.instance = BFS(start, target, pickup, grid, weights) #weights will j be walls
         elif self.alg_name == "Depth First Search":
-            self.instance = DFS(start, target, grid, weights) #weights will j be walls
+            self.instance = DFS(start, target, pickup, grid, weights) #weights will j be walls
         elif self.alg_name == "Dijkstra's":
-            self.instance = DIJKSTRAS(start, target, grid, weights)
+            self.instance = DIJKSTRAS(start, target, pickup, grid, weights)
         elif self.alg_name == "A*":
-            self.instance = ASTAR(start, target, grid, weights, heuristic)
+            self.instance = ASTAR(start, target, pickup, grid, weights, heuristic)
         elif self.alg_name == "Bellman Ford":
-            self.instance = BELLMANFORD(start, target, grid, weights)
+            self.instance = BELLMANFORD(start, target, pickup, grid, weights)
         elif self.alg_name == "Johnsons":
-            self.instance = JOHNSONS(start, target, grid, weights)
+            self.instance = JOHNSONS(start, target, pickup, grid, weights)
         elif self.alg_name == "Greedy BFS":
-            self.instance = GREEDYBFS(start, target, grid, weights, heuristic)
+            self.instance = GREEDYBFS(start, target, pickup, grid, weights, heuristic)
 
     def algorithm_done(self):
         self.running = False
