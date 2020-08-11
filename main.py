@@ -5,7 +5,6 @@
 TODO: add good theme.json file to make a theme for GUI elements
 TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me when you get here,
       I would do everything else first. Maybe just look up bidirectional search
-TODO: Restrict the weights to be -99 to 99
 TODO: Add speed label to the speed slider
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
@@ -111,9 +110,9 @@ speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygam
                                     start_value=0.001,
                                     value_range=(0.1, 0.001),
                                     manager = manager)
-# surf = font.render('Speed', True, (255, 255, 255))
+# surf = font.render('Speed', True, (0, 0, 0))
 # rectangle = surf.get_rect()
-# rectangle.center = (BUTTON_MARGIN*3+ BUTTON_WIDTH*2, GRID_SIZE[1] + BUTTON_MARGIN)
+# rectangle.center = (MENU_COL(4), MENU_ROW(1))
 # screen.blit(surf, rectangle)
 
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(4),
@@ -537,11 +536,13 @@ while not done:
 
     # draw start and target nodes
 
+    # start arrow code
     center_x = (MARGIN + WIDTH) * start_pos[1] + WIDTH//2
     center_y = (MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2
     points = [(center_x, center_y),(center_x - WIDTH // 2, center_y - HEIGHT // 2),(center_x + WIDTH // 2, center_y), (center_x - WIDTH // 2, center_y + HEIGHT // 2)]
     pygame.draw.polygon(screen, START_COLOR, points)
 
+    # start circle code
     # pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
     #                    WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
     
