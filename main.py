@@ -8,21 +8,21 @@ TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me
 TODO: Add speed label to the speed slider
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
+TODO: Allow the algo to be cleared in the middle (which would stop it)
 TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
 TODO: redesign menu order/location/sizing
 TODO: Fix the rendering time
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
+TODO: DFS is broken- fix
+TODO: FIx a*- target should not be movable; not working with the weights
 TODO: drawing the path for dfs
-TODO: Add builtin graphs (one with negative cycles, maze)
-TODO: What if the target is no longer reachable because of walls
+TODO: If there were weights before and no longer are, need to address
+TODO: Add builtin graphs (one with negative cycles, maze, unreachable areas)
 TODO: Somehow increase the max speed
 TODO: Add feature to first visit other node
 TODO: Johnsons
-TODO: Given that most find the shortest path to every node,
-      there should be a way to auto calculate when the target gets moved around.
-      The start node should be fixed in this case
 
 @General
 TODO: Stylize main.py and add comments to other files
@@ -126,10 +126,12 @@ weight_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL
                                             BUTTON_SIZE),
                                             text='Add Weights',
                                             manager=manager)
-weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((MENU_COL(2), MENU_ROW(2)),
-                                            BUTTON_SIZE),
+weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((MENU_COL(2)+BUTTON_WIDTH//2 - WEIGHT_TEXTBOX_SIZE[0]//2, 
+                                            MENU_ROW(2)+BUTTON_HEIGHT//5),
+                                            WEIGHT_TEXTBOX_SIZE),
                                             manager=manager)
 weight_text_entry.set_allowed_characters(['-','1','2','3','4','5','6','7','8','9','0'])
+weight_text_entry.set_text_length_limit(3)
 weight_text_entry.hide()
 
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
@@ -170,6 +172,7 @@ neg_weights_warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect
                                             manager=manager)
 neg_weights_warning_window.hide()
 
+
 def enable_all():
     start_button.enable()
     algorithms_dropdown.enable()
@@ -208,7 +211,9 @@ while not done:
                 if event.ui_element == algorithms_dropdown and not adding_weights:
                     algo_selected = True
                     start_button.enable()
+                    grid = curr_alg.newGrid(NOT_VISITED)
                     curr_alg.update_description(algorithms_dropdown.selected_option)
+                    curr_alg.instance = None
                     if algorithms_dropdown.selected_option == "A*" or \
                         algorithms_dropdown.selected_option == "Greedy BFS":
                         heuristics_dropdown.show()
@@ -312,10 +317,8 @@ while not done:
                             weight_text_entry.set_text("")
                             for row in range(ROWS):
                                 grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
-                    
-                    # if not no_weights(weights):
-                    #
-                    # if negative_weights(weights):
+
+                
 
                 elif event.ui_element == step_button:
                     step_to_be_made = True
@@ -417,8 +420,6 @@ while not done:
                 time_elapsed_since_last_action1 = 0
                 info_box.html_text = "Now drawing shortest path of weight/length {}".format(shortest_pweight)
                 info_box.rebuild()
-            if not curr_alg.instance.drawing_shortest_path:
-                curr_alg.algorithm_done()
         else: #either needs to start or already started calculating the shortest path
             if speed != 0.1 or step_to_be_made:
                 curr_alg.instance.one_step()
@@ -434,12 +435,36 @@ while not done:
                 else:
                     step_to_be_made = False
         grid = curr_alg.instance.grid
-    elif not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance:
-        info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
-        info_box.rebuild()
+    elif not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance: #logic doesn't work
+        if curr_alg.instance.found:
+            info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
+            info_box.rebuild()
+        else:
+            info_box.html_text = "The target node could not be reached from the source vertex."
+            info_box.rebuild()
     elif not curr_alg.running and curr_alg.alg_chosen:
         info_box.html_text = curr_alg.description
         info_box.rebuild()
+
+    if curr_alg.instance and curr_alg.running and not curr_alg.instance.drawing_shortest_path and not curr_alg.instance.finding_shortest_path:
+        curr_alg.algorithm_done()
+
+    #If there was an algorithm running before and the graph is not empty and the target has changed
+    #  Then call new_target(target) -> can always check if target == curr_alg.instance.target
+    if not curr_alg.running and curr_alg.alg_chosen and (not no_weights(grid)) and curr_alg.alg_name != "Johnsons":
+        start_dragging = False 
+    if not curr_alg.running and curr_alg.alg_chosen and not no_weights(grid) and curr_alg.instance and target_pos != curr_alg.instance.target:
+        if curr_alg.alg_name != "A*" and curr_alg.alg_name != "Greedy BFS":
+            shortest_pweight = curr_alg.instance.shortest_path_length
+            if curr_alg.instance.new_target(target_pos): #this recalculates this way too often
+                info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
+                info_box.rebuild()
+            else:
+                info_box.html_text = "The target node could not be reached from the source vertex."
+                info_box.rebuild()
+            grid = curr_alg.instance.grid
+        else: #For heuristic based algorithms it does not make sense to set a new target
+            target_dragging = False
 
 
     # Set the screen background

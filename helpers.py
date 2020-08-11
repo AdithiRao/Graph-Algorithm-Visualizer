@@ -8,7 +8,7 @@ def no_weights(grid):
     no_weight = True
     for row in range(len(grid)):
         for col in range(len(grid[0])):
-            if grid[row][col] != 0 or grid[row][col] != 1:
+            if grid[row][col] != 0 and grid[row][col] != 1:
                 no_weight = False
                 return no_weight
     return no_weight

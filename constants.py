@@ -1,6 +1,6 @@
 from pygame import Color
 
-GRID_SIZE = [1052, 400]
+GRID_SIZE = [1052, 200]
 
 MENU_HEIGHT = 270
 
@@ -9,6 +9,7 @@ BUTTON_WIDTH = 225
 BUTTON_HEIGHT = 50
 BUTTON_SIZE = (BUTTON_WIDTH, BUTTON_HEIGHT)
 MINI_BUTTON_SIZE = (100, 50)
+WEIGHT_TEXTBOX_SIZE = (50, 50)
 WARNING_WINDOW_SIZE = (300, 200)
 BUTTON_MARGIN = 15
 
@@ -61,6 +62,7 @@ COLORS[WALL] = Color("#007e80")
 # start and target node variables
 START_COLOR = Color("#f3c9e4")
 TARGET_COLOR = Color("#10a0cc")
+PICKUP_COLOR = Color("#ff6600")
 
 ARROW_COLOR = Color("#05ffe6")
 

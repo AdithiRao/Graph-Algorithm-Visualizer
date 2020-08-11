@@ -8,16 +8,27 @@ class DIJKSTRAS(GraphSearchBase):
     '''
     Summary of algorithm:
     '''
-    def __init__(self, start, target, grid, weights):
-        super().__init__(start, target, grid)
+    def __init__(self, start, target, pickup, grid, weights):
+        super().__init__(start, target, pickup, grid, weights)
         self.pq = []
         heappush(self.pq, (0, start))
-        self.weights = weights
+
+    def finish(self):
+        while self.pq:
+            curr_weight, (curr_row, curr_col) = heappop(self.pq)
+            self.curr_node = (curr_row, curr_col)
+            self.order_visited.append(self.curr_node)
+    
+            for dir in self.directions:
+                if self.valid_to_visit(curr_row+dir[0], curr_col+dir[1]):
+                    el_weight = self.weights[curr_row+dir[0]][curr_col+dir[1]] +\
+                                curr_weight
+                    heappush(self.pq, (el_weight, (curr_row+dir[0], curr_col+dir[1])))
+                    self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
+                    self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
 
     # Returns (found, alg_done, curr_spath_node, n_node_dir)
     def one_step(self):
-        grid_height = len(self.grid)
-        grid_width = len(self.grid[0])
         if self.drawing_shortest_path:
             self.step_through_shortest_path()
             return
@@ -27,19 +38,14 @@ class DIJKSTRAS(GraphSearchBase):
             curr_weight, (curr_row, curr_col) = self.pq[0]
             self.shortest_path_length = curr_weight
             self.curr_node = (curr_row, curr_col)
+            self.order_visited.append(self.curr_node)
             self.grid_updates()
             if (curr_row, curr_col) == self.target:
-                self.grid[curr_row][curr_col] = FOUND
-                self.generate_shortest_path()
-                self.finding_shortest_path = False
-                self.drawing_shortest_path = True
+                self.done()
                 return
             heappop(self.pq)
             for dir in self.directions:
-                if curr_row+dir[0] >= 0 and curr_row+dir[0] < grid_height and \
-                curr_col+dir[1] >= 0 and curr_col+dir[1] < grid_width and \
-                (curr_row+dir[0], curr_col+dir[1]) not in self.visited_set \
-                and self.weights[curr_row+dir[0]][curr_col+dir[1]] != 0: #wall
+               if self.valid_to_visit(curr_row+dir[0], curr_col+dir[1]):
                     el_weight = self.weights[curr_row+dir[0]][curr_col+dir[1]] +\
                                 curr_weight
                     heappush(self.pq, (el_weight, (curr_row+dir[0], curr_col+dir[1])))

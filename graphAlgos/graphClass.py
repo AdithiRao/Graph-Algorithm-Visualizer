@@ -2,30 +2,84 @@ from copy import deepcopy
 from constants import *
 
 class GraphSearchBase:
-    def __init__(self, start, target, grid):
+    def __init__(self, start, target, pickup, grid, weights):
         self.grid = grid
         self.start = start
+        self.pickup = pickup
         self.target = target
+        self.weights = weights
 
         self.curr_node = None
         self.n_node_dir = None
         self.VISITED = None
         self.drawing_shortest_path = False
         self.finding_shortest_path = False
+        self.found = False
         self.shortest_path_length = 0
 
         self.visited_set = set()
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
+        self.grid_height = len(self.grid)
+        self.grid_width = len(self.grid[0])
         self.shortest_path = []
         self.order_visited = []
+        self.walls = []
         self.parents = deepcopy(grid) #will store the coordinates of the parent
 
+    def within_boundaries(self, row, col):
+        return row >= 0 and row < self.grid_height and \
+                col >= 0 and col < self.grid_width \
+                and self.weights[row][col] != 0 
+
+    def valid_to_visit(self, row, col):
+        return self.within_boundaries(row, col) and \
+                (row, col) not in self.visited_set
+
+    def done(self):
+        curr_row, curr_col = self.target
+        self.grid[curr_row][curr_col] = FOUND
+        self.generate_shortest_path()
+        self.finding_shortest_path = False
+        self.drawing_shortest_path = True
+        self.found = True
+        finish = getattr(self, "finish", None)
+        if callable(finish):
+            self.finish()
+
+    def new_target(self, target):
+        self.target = target
+        curr_node_index = 0
+        self.grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+        while curr_node_index < len(self.order_visited) and self.order_visited[curr_node_index] != target:
+            curr_row, curr_col = self.order_visited[curr_node_index]
+            self.grid[curr_row][curr_col] = VISITED
+            curr_node_index += 1
+        self.shortest_path = []
+        if not self.generate_shortest_path():
+            print("returning false")
+            self.found = False
+            return False
+        for node_r, node_c in self.shortest_path:
+            self.grid[node_r][node_c] = SHORTEST_PATH_NODE
+        self.found = True
+        return True
+
     def generate_shortest_path(self):
-        node_x, node_y = self.target
-        while (node_x, node_y) != self.start:
-            self.shortest_path.append((node_x, node_y))
-            (node_x, node_y) = self.parents[node_x][node_y]
-        self.shortest_path.append((node_x, node_y))
+        node= self.target
+        self.shortest_path_length = 0
+        while node and node != self.start:
+            (node_x, node_y) = node
+            self.shortest_path.append(node)
+            node = self.parents[node_x][node_y]
+            if self.weights:
+                self.shortest_path_length += self.weights[node_x][node_y]
+            else:
+                self.shortest_path_length += 1
+        if node:
+            self.shortest_path.append(node)
+            return True
+        else:
+            return False
 
     def step_through_shortest_path(self):
         if len(self.shortest_path) > 0:
