@@ -8,19 +8,16 @@ TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me
 TODO: Add speed label to the speed slider
 TODO: Get scroll bar to work on text box
 TODO: Add x and y axis with numbers 
-TODO: Allow the algo to be cleared in the middle (which would stop it)
-TODO: Have an info popup showing how to use everything (I have a warning box set up for this)
+TODO: Allow the algo to be cleared in the middle (which would stop it): need to set instance = None and running to false
+TODO: Have an info popup showing how to use everything
 TODO: redesign menu order/location/sizing
-TODO: Fix the rendering time
+TODO: Fix the rendering time, somehow increase the max speed
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
-TODO: DFS is broken- fix
-TODO: FIx a*- target should not be movable; not working with the weights
+TODO: Fix bellman-ford: Terminates weirdly with no weights and doesnt work with no weights
 TODO: drawing the path for dfs
-TODO: If there were weights before and no longer are, need to address
 TODO: Add builtin graphs (one with negative cycles, maze, unreachable areas)
-TODO: Somehow increase the max speed
 TODO: Add feature to first visit other node
 TODO: Johnsons
 
@@ -64,8 +61,10 @@ weights = curr_alg.newGrid(1) # initialize weights
 font = pygame.font.SysFont('couriernewttf', 2*HEIGHT//3)
 start_pos = (ROWS//2,COLS//3)
 target_pos = (ROWS//2,COLS*2//3)
+pickup_pos = (-1, -1)
 start_dragging = False
 target_dragging = False
+pickup_dragging = False
 algo_selected = False
 adding_weights = False
 building_mazes = []
@@ -129,6 +128,12 @@ weight_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rec
 weight_text_entry.set_allowed_characters(['-','1','2','3','4','5','6','7','8','9','0'])
 weight_text_entry.set_text_length_limit(3)
 weight_text_entry.hide()
+
+pickup_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(3),
+                                            MENU_ROW(2)),
+                                            BUTTON_SIZE),
+                                            text='Add Pickup',
+                                            manager=manager)
 
 info_box = pygame_gui.elements.ui_text_box.UITextBox(html_text="Run an algorithm!",
                                             relative_rect=pygame.Rect((MENU_COL(4),
@@ -219,6 +224,7 @@ while not done:
                     curr_alg.heuristic = heuristics_dropdown.selected_option
                     curr_alg.update_description(algorithms_dropdown.selected_option)
                 elif event.ui_element == graphs_dropdown:
+                    grid = curr_alg.newGrid(NOT_VISITED)
                     if graphs_dropdown.selected_option == "Arbitrary Positive Weights":
                         weights = arb_pos_weights()
                     elif graphs_dropdown.selected_option == "Arbitrary Weights":
@@ -268,14 +274,14 @@ while not done:
                     else:
                         grid = curr_alg.newGrid(NOT_VISITED)
                         init_sizes_and_steps(sizes_and_steps)
-                        curr_alg.start_algorithm((start_pos, target_pos),
+                        curr_alg.start_algorithm((start_pos, target_pos, pickup_pos),
                                                     grid, weights)
                         adding_walls = False
                         adding_weights = False
                         weight_button.disable()
                         clear_weights_walls_button.disable()
-                if event.ui_element == clear_all_button:
-                    #curr_alg = CurrGraphAlgorithm()
+                elif event.ui_element == clear_all_button:
+                    curr_alg.instance = None
                     grid = curr_alg.newGrid(NOT_VISITED)
                     weights = curr_alg.newGrid(1)
                     adding_walls = True
@@ -298,7 +304,6 @@ while not done:
                             info_box.html_text = "Enter a weight from -99 to 99"
                             info_box.rebuild()
                         else:
-
                             info_box.html_text = "Run an algorithm!"
                             info_box.rebuild()
                             adding_weights = False
@@ -312,12 +317,17 @@ while not done:
                                         weights[row][col] = int(weight_text_entry.get_text())
                             weight_text_entry.set_text("")
                             for row in range(ROWS):
-                                grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
-
-                
+                               grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
 
                 elif event.ui_element == step_button:
                     step_to_be_made = True
+                elif event.ui_element == pickup_button:
+                    if pickup_button.text == "Add Pickup":
+                        pickup_button.set_text("Remove Pickup")
+                        pickup_pos = (ROWS//4, COLS//2)
+                    else:
+                        pickup_button.set_text("Add Pickup")
+                        pickup_pos = (-1, -1)
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
@@ -330,9 +340,18 @@ while not done:
                 start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
 
             elif (column == target_pos[1] and row == target_pos[0] and not curr_alg.running):
-                target_dragging = True
-                target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
-                target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
+                if curr_alg.alg_chosen and curr_alg.instance != None and (curr_alg.alg_name == "A*" or curr_alg.alg_name == "Greedy BFS"):
+                    target_dragging = False
+                else:
+                    target_dragging = True
+                    target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
+                    target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
+
+            elif (column == pickup_pos[1] and row == pickup_pos[0]):
+                print("right pos")
+                pickup_dragging = True
+                pickup_offset_x = ((MARGIN + WIDTH) * pickup_pos[1]) - pos[0]
+                pickup_offset_y = ((MARGIN + HEIGHT) * pickup_pos[0]) - pos[1]
 
             elif check_in_bounds((row, column)):
                 if adding_weights or adding_walls:
@@ -354,6 +373,7 @@ while not done:
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
             target_dragging = False
+            pickup_dragging = False
             highlighting = False
             erase_highlighting = False
 
@@ -363,19 +383,23 @@ while not done:
                 start_x = pos[0] + start_offset_x
                 start_y = pos[1] + start_offset_y
                 temp = (start_y // (HEIGHT + MARGIN), start_x // (WIDTH + MARGIN))
-                if not check_in_bounds(temp) or weights[temp[0]][temp[1]] == 0:
-                    start_pos = start_pos
-                else:
+                if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
                     start_pos = temp
             elif target_dragging:
                 target_x = pos[0] + target_offset_x
                 target_y = pos[1] + target_offset_y
                 temp = (target_y // (HEIGHT + MARGIN), target_x // (WIDTH + MARGIN))
-                if not check_in_bounds(temp) or weights[temp[0]][temp[1]] == 0:
-                    target_pos = target_pos
-                else:
+                if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
                     target_pos = temp
-            
+            elif pickup_dragging:
+                print("pickup draggin")
+                pickup_x = pos[0] + pickup_offset_x
+                pickup_y = pos[1] + pickup_offset_y
+                temp = (pickup_y // (HEIGHT + MARGIN), pickup_x // (WIDTH + MARGIN))
+                if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
+                    pickup_pos = temp
+                    print("here")
+              
             elif highlighting or erase_highlighting:
                 weight_x = pos[0]
                 weight_y = pos[1]
@@ -445,23 +469,20 @@ while not done:
     if curr_alg.instance and curr_alg.running and not curr_alg.instance.drawing_shortest_path and not curr_alg.instance.finding_shortest_path:
         curr_alg.algorithm_done()
 
-    #If there was an algorithm running before and the graph is not empty and the target has changed
+    #If there was an algorithm running before and the target has changed
     #  Then call new_target(target) -> can always check if target == curr_alg.instance.target
     if not curr_alg.running and curr_alg.alg_chosen and (not no_weights(grid)) and curr_alg.alg_name != "Johnsons":
         start_dragging = False 
-    if not curr_alg.running and curr_alg.alg_chosen and not no_weights(grid) and curr_alg.instance and target_pos != curr_alg.instance.target:
-        if curr_alg.alg_name != "A*" and curr_alg.alg_name != "Greedy BFS":
-            shortest_pweight = curr_alg.instance.shortest_path_length
-            if curr_alg.instance.new_target(target_pos): #this recalculates this way too often
-                info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
-                info_box.rebuild()
-            else:
-                info_box.html_text = "The target node could not be reached from the source vertex."
-                info_box.rebuild()
-            grid = curr_alg.instance.grid
-        else: #For heuristic based algorithms it does not make sense to set a new target
-            target_dragging = False
-
+    if not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance and target_pos != curr_alg.instance.target:
+      #  if curr_alg.alg_name != "A*" and curr_alg.alg_name != "Greedy BFS":
+        shortest_pweight = curr_alg.instance.shortest_path_length
+        if curr_alg.instance.new_target(target_pos): #this recalculates this way too often
+            info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
+            info_box.rebuild()
+        else:
+            info_box.html_text = "The target node could not be reached from the source vertex."
+            info_box.rebuild()
+        grid = curr_alg.instance.grid
 
     # Set the screen background
     screen.fill(BACKGROUND_COLOR)
@@ -562,8 +583,9 @@ while not done:
     points = [(center_x, center_y),(center_x - WIDTH // 2, center_y - HEIGHT // 2),(center_x + WIDTH // 2, center_y), (center_x - WIDTH // 2, center_y + HEIGHT // 2)]
     pygame.draw.polygon(screen, START_COLOR, points)
 
-    # pygame.draw.circle(screen, START_COLOR, ((MARGIN + WIDTH) * start_pos[1] + \
-    #                    WIDTH//2,(MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2), WIDTH//2)
+    if pickup_pos != (-1, -1):
+        pygame.draw.circle(screen, PICKUP_COLOR, ((MARGIN + WIDTH) * pickup_pos[1] + MARGIN + \
+                       WIDTH//2,(MARGIN + HEIGHT) * pickup_pos[0] +MARGIN + HEIGHT//2), WIDTH//2, width=5)
     
     # target star code
     num_points = 5
