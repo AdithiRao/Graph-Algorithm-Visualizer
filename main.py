@@ -109,6 +109,10 @@ speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygam
                                     start_value=0.001,
                                     value_range=(0.1, 0.001),
                                     manager = manager)
+# surf = font.render('Speed', True, (0, 0, 0))
+# rectangle = surf.get_rect()
+# rectangle.center = (MENU_COL(4), MENU_ROW(1))
+# screen.blit(surf, rectangle)
 
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(4),
                                                     MENU_ROW(1)),
@@ -578,6 +582,7 @@ while not done:
 
     # draw start and target nodes
 
+    # start arrow code
     center_x = (MARGIN + WIDTH) * start_pos[1] + WIDTH//2
     center_y = (MARGIN + HEIGHT) * start_pos[0] + HEIGHT//2
     points = [(center_x, center_y),(center_x - WIDTH // 2, center_y - HEIGHT // 2),(center_x + WIDTH // 2, center_y), (center_x - WIDTH // 2, center_y + HEIGHT // 2)]
