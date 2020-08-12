@@ -54,11 +54,6 @@ COLORS[TO_WEIGHT] = Color("#470f00")
 COLORS[WEIGHTED] = Color("#61869b")
 COLORS[WALL] = Color("#007e80")
 
-
-# start and target node variables
-# START_COLOR = (208, 229, 245)
-# TARGET_COLOR = (47, 93, 128)
-
 # start and target node variables
 START_COLOR = Color("#f3c9e4")
 TARGET_COLOR = Color("#10a0cc")

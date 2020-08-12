@@ -4,7 +4,7 @@ from constants import *
 
 
 class GREEDYBFS(GraphSearchBase):
-    def __init__(self, start, target, grid, pickup, weights, heuristic):
+    def __init__(self, start, target, pickup, grid, weights, heuristic):
         super().__init__(start, target, pickup, grid, weights)
         self.pq = []
         heappush(self.pq, (heuristic(start[0], start[1]), start, 0))

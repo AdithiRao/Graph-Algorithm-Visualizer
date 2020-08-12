@@ -20,6 +20,7 @@ TODO: drawing the path for dfs
 TODO: Add builtin graphs (one with negative cycles, maze, unreachable areas)
 TODO: Add feature to first visit other node
 TODO: Johnsons
+TODO: Documentation and unittests
 
 @General
 TODO: Stylize main.py and add comments to other files
