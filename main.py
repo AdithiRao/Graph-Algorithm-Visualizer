@@ -229,6 +229,7 @@ while not done:
                     curr_alg.heuristic = heuristics_dropdown.selected_option
                     curr_alg.update_description(algorithms_dropdown.selected_option)
                 elif event.ui_element == graphs_dropdown:
+                    curr_alg.instance = None
                     grid = curr_alg.newGrid(NOT_VISITED)
                     if graphs_dropdown.selected_option == "Arbitrary Positive Weights":
                         weights = arb_pos_weights()
@@ -339,18 +340,19 @@ while not done:
             column = pos[0] // (WIDTH + MARGIN)
             row = pos[1] // (HEIGHT + MARGIN)
 
-            if (column == start_pos[1] and row == start_pos[0] and not curr_alg.running):
-                start_dragging = True
-                start_offset_x = ((MARGIN + WIDTH) * start_pos[1]) - pos[0]
-                start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
-
-            elif (column == target_pos[1] and row == target_pos[0] and not curr_alg.running):
+            if (column == target_pos[1] and row == target_pos[0] and not curr_alg.running):
                 if curr_alg.alg_chosen and curr_alg.instance != None and (curr_alg.alg_name == "A*" or curr_alg.alg_name == "Greedy BFS"):
                     target_dragging = False
                 else:
                     target_dragging = True
                     target_offset_x = ((MARGIN + WIDTH) * target_pos[1]) - pos[0]
                     target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
+
+            elif (column == start_pos[1] and row == start_pos[0] and not curr_alg.running):
+                start_dragging = True
+                start_offset_x = ((MARGIN + WIDTH) * start_pos[1]) - pos[0]
+                start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
+
 
             elif (column == pickup_pos[1] and row == pickup_pos[0]):
                 print("right pos")

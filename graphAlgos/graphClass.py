@@ -56,7 +56,6 @@ class GraphSearchBase:
             curr_node_index += 1
         self.shortest_path = []
         if not self.generate_shortest_path():
-            print("returning false")
             self.found = False
             return False
         for node_r, node_c in self.shortest_path:
