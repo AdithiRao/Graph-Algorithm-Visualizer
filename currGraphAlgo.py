@@ -9,6 +9,10 @@ from graphAlgos.greedyBFS import GREEDYBFS
 from constants import ROWS, COLS, MARGIN, WIDTH, HEIGHT, COLORS, WHITE
 
 class CurrGraphAlgorithm():
+    '''
+    This class is used to deal with the running of any algorithm: the instance variable
+    will always refer to the current running algorithm. 
+    '''
     def __init__(self):
         self.running = False
         self.alg_chosen = False
@@ -24,6 +28,7 @@ class CurrGraphAlgorithm():
             grid[row] = [initial]*COLS
         return grid
 
+    # Updates description of the algorithm that was chosen
     def update_description(self, alg):
         self.alg_name = alg
         self.alg_chosen = True
@@ -45,8 +50,22 @@ class CurrGraphAlgorithm():
                 self.description = "A* uses a priority queue and a heuristic to guide" \
                                    " the searching process. Here the heuristic is taxicab"\
                                    " distance."
+        elif alg == "Greedy BFS":
+            if self.heuristic == "Heuristic: Euclidean Dst.":
+                self.description = "Greedy BFS is very similar to A*- however it only uses a heuristic to"\
+                                "guide the searching process rather than also considering the elements' weight."\
+                                 " Here the heuristic is straight line distance."
+            elif self.heuristic == "Heuristic: Manhattan Dst.":
+                self.description = "Greedy BFS is very similar to A*- however it only uses a heuristic to"\
+                                    "guide the searching process rather than also considering the elements' weight."\
+                                    " Here the heuristic is taxicab distance."
+        elif alg == "Bellman Ford":
+            self.description = "Bellman Ford is an algorithm capable of dealing with negative weights. It uses k-hop distances"\
+                                "to determine if a node is caught in a negative cycle. "
+        elif alg == "Johnsons":
+            self.description = "Johnsons solves the All-Pairs-Shortest-Paths problem."
 
-
+    
     def start_algorithm(self, params, grid, weights):
         self.running = True
         (start, target, pickup) = params

@@ -4,6 +4,7 @@ import random
 import math
 import copy
 
+# Returns True if there are no weights on the grid
 def no_weights(grid):
     no_weight = True
     for row in range(len(grid)):
@@ -13,6 +14,7 @@ def no_weights(grid):
                 return no_weight
     return no_weight
 
+# Returns True if the point is in range of the grid
 def check_in_bounds(point):
     row = point[0]
     column = point[1]
@@ -21,6 +23,7 @@ def check_in_bounds(point):
     else:
         return False
 
+# Returns True if there are any negative weights on the grid
 def negative_weights(grid):
     neg = False
     for row in range(len(grid)):
@@ -30,12 +33,15 @@ def negative_weights(grid):
                 return neg
     return neg
 
+# Creates random positive weights in the range 1-99 for the entire grid
 def arb_pos_weights():
     return [[random.randrange(1,99,1) for col in range(COLS)] for row in range(ROWS)]
 
+# Creates arbitrary negative and positive weights in the range -99:1, 1:99
 def arb_weights():
     return [[random.choices([random.randrange(-99,-1,1), random.randrange(1,99,1)])[0] \
             for col in range(COLS)] for row in range(ROWS)]
+
 
 def no_other_neighbors_visited(grid, visited, new_el, old_el):
     (row, col) = new_el
@@ -68,13 +74,7 @@ def recursive_backtracking_maze(start, target):
     grid[target[0]][target[1]] = 1
     return grid
 
-def choose_orientation(width, height):
-    if width < height:
-        return 1 #HORIZONTAL
-    elif height < width:
-        return 0
-    return random.randrange(0,1,1)
-
+# Recursively divides the grid board to create a maze
 def recursive_division_maze(start, target):
     grid = [[1 for col in range(COLS)] for row in range(ROWS)]
     orientation = choose_orientation(COLS, ROWS)
@@ -85,6 +85,15 @@ def recursive_division_maze(start, target):
     grid[target[0]][target[1]] = 1
     return solutions
 
+# Helper method used for recursive_division_maze: chooses the orientation to split across
+def choose_orientation(width, height):
+    if width < height:
+        return 1 #HORIZONTAL
+    elif height < width:
+        return 0
+    return random.randrange(0,1,1)
+
+# Recursive method used for recursive_division_maze- currently broken
 def divide(solutions, grid, orientation, x, y, width, height, gaps,
            horizontal_boundary=None, vertical_boundary=None):
     print("new iteration", orientation)
@@ -159,12 +168,15 @@ def divide(solutions, grid, orientation, x, y, width, height, gaps,
                  horizontal_boundary, vertical_boundary)
     return grid
 
+# Gives the appropriate height corresponding to the row num in the button menu
 def MENU_ROW(i):
     return GRID_SIZE[1] + (i-1)*BUTTON_HEIGHT + i*BUTTON_MARGIN
 
+# Gives the appropriate width corresponding to the col num in the button menu
 def MENU_COL(i):
     return i*BUTTON_MARGIN + (i-1)*BUTTON_WIDTH
 
+# Returns the rectangle coordinates for a mini square corresponding to the row, col parameters passed in
 def base_square(row, col):
     return ((MARGIN + WIDTH) * col + MARGIN + (3*WIDTH)//8, 
                                         (MARGIN + HEIGHT) * row + MARGIN + (3*HEIGHT)//8, 
@@ -172,19 +184,20 @@ def base_square(row, col):
                                         HEIGHT//4, 
                                         0)
 
+# Initializes all the sizes_and_steps entries to be of size base square and have a step count of 0
 def init_sizes_and_steps(sizes_and_steps):
     for row in range(ROWS):
         for col in range(COLS):
             sizes_and_steps[row][col] = base_square(row, col)
     # return sizes_and_steps
 
-
+# Returns (r,g,b) of the linear interpolation between the two rgb color vectors passed in
 def lerp(v0, v1, t):
     return (max(min(math.floor((1-t)*v0[0]+t*v1[0]), 255), 0), 
             max(min(math.floor((1-t)*v0[1]+t*v1[1]), 255), 0), 
             max(min(math.floor((1-t)*v0[2]+t*v1[2]), 255),0))
-    # return (1 - t) * v0 + t * v1
 
+# Grows the cell coordinates to create a more visually appealing graphic 
 def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach, state):
     if state == VISITED:
         if width == WIDTH or height == HEIGHT:
@@ -200,7 +213,8 @@ def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach, st
         new_color = lerp(rgb, target_rgb, step/NUM_COLOR_STEPS)
         
         return (new_left, new_top, new_width, new_height, new_color)
-    else: #drawing path
+    # Drawing path animation
+    else: 
         if width == SP_WIDTH or height == SP_HEIGHT:
             return (left, top, SP_WIDTH, SP_HEIGHT,  COLORS[SHORTEST_PATH_NODE])
         
@@ -211,15 +225,9 @@ def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach, st
         return (new_left, new_top, new_width, new_height, COLORS[SHORTEST_PATH_NODE])
 
 
+# Draws a rectangle with rounded corners
 #citation: https://stackoverflow.com/questions/61523241/pygame-button-with-rounded-corners-border-radius-argument-does-not-work
 def draw_rounded_rect(surface, rect, color, corner_radius):
-    ''' Draw a rectangle with rounded corners.
-    Would prefer this: 
-        pygame.draw.rect(surface, color, rect, border_radius=corner_radius)
-    but this option is not yet supported in my version of pygame so do it ourselves.
-
-    We use anti-aliased circles to make the corners smoother
-    '''
     if rect.width < 2 * corner_radius or rect.height < 2 * corner_radius:
         raise ValueError(f"Both height (rect.height) and width (rect.width) must be > 2 * corner radius ({corner_radius})")
 

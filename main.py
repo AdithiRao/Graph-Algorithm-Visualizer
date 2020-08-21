@@ -15,11 +15,13 @@ TODO: Fix the rendering time, somehow increase the max speed
 TODO: Fix color scheme of search to go with gui colors
 
 @Adithi
+TODO: Add info about where target source and pickup are
 TODO: Fix bellman-ford: Terminates weirdly with no weights and doesnt work with no weights
 TODO: drawing the path for dfs
-TODO: Add builtin graphs (one with negative cycles, maze, unreachable areas)
+TODO: Add builtin graphs (one with negative cycles, maze, unreachable areas, 4x4 blocks)
 TODO: Add feature to first visit other node
 TODO: Johnsons
+TODO: Add more heuristics
 TODO: Documentation and unittests
 
 @General
@@ -59,6 +61,7 @@ init_sizes_and_steps(sizes_and_steps)
 
 weights = curr_alg.newGrid(1) # initialize weights
 
+# Various animation run-time variables
 font = pygame.font.SysFont('couriernewttf', 2*HEIGHT//3)
 start_pos = (ROWS//2,COLS//3)
 target_pos = (ROWS//2,COLS*2//3)
@@ -75,6 +78,7 @@ step_to_be_made = False
 highlighting = False
 erase_highlighting = False
 
+# Button initializations
 algorithms_list = ["Depth First Search", "Breadth First Search", "Dijkstra's",
                     "A*", "Bellman Ford", "Johnsons", "Greedy BFS"]
 algorithms_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(algorithms_list,
@@ -110,10 +114,6 @@ speed_button = pygame_gui.elements.ui_horizontal_slider.UIHorizontalSlider(pygam
                                     start_value=0.001,
                                     value_range=(0.1, 0.001),
                                     manager = manager)
-# surf = font.render('Speed', True, (0, 0, 0))
-# rectangle = surf.get_rect()
-# rectangle.center = (MENU_COL(4), MENU_ROW(1))
-# screen.blit(surf, rectangle)
 
 step_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((MENU_COL(4),
                                                     MENU_ROW(1)),
@@ -179,6 +179,7 @@ neg_weights_warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect
 neg_weights_warning_window.hide()
 
 
+# Enables all buttons
 def enable_all():
     start_button.enable()
     algorithms_dropdown.enable()
@@ -192,6 +193,7 @@ def enable_all():
     step_button.enable()
     speed_button.enable()
 
+# Disables all buttons
 def disable_all():
     start_button.disable()
     algorithms_dropdown.disable()
@@ -212,6 +214,7 @@ while not done:
         if event.type == pygame.QUIT:  # If user clicked close
             done = True
 
+        # All the dropdown actions
         elif event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                 if event.ui_element == algorithms_dropdown and not adding_weights:
@@ -248,6 +251,7 @@ while not done:
             else:
                 step_button.hide()
 
+            # Other button based actions
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == weights_warning_window.dismiss_button or \
                    event.ui_element == weights_warning_window.close_window_button:
@@ -260,6 +264,7 @@ while not done:
                     adding_walls = True
                     enable_all()
                 elif event.ui_element == start_button and algo_selected:
+                    # Weights don't work with bfs or dfs
                     if (not no_weights(weights)) and \
                         (algorithms_dropdown.selected_option == "Breadth First Search" or\
                         algorithms_dropdown.selected_option == "Depth First Search"):
@@ -268,10 +273,12 @@ while not done:
                         disable_all()
                         weight_button.disable()
                         clear_weights_walls_button.disable()
+                    # Negative weights don't work with Dijkstras, A* or best first search
                     elif negative_weights(weights) and \
                         algorithms_dropdown.selected_option == "Dijkstra's" or\
                         algorithms_dropdown.selected_option == "A*: Euclidean Distance" or\
-                        algorithms_dropdown.selected_option == "A*: Manhattan Distance":
+                        algorithms_dropdown.selected_option == "A*: Manhattan Distance" or\
+                        algorithms_dropdown.selected_option == "Greedy BFS":
                         neg_weights_warning_window.show()
                         adding_walls = False
                         disable_all()
@@ -298,6 +305,7 @@ while not done:
                     grid = curr_alg.newGrid(NOT_VISITED)
                 elif event.ui_element == clear_weights_walls_button:
                     weights = curr_alg.newGrid(1)
+                # Allows users to add weights to the grid
                 elif event.ui_element == weight_button:
                     if not adding_weights:
                         adding_weights = True
@@ -306,6 +314,7 @@ while not done:
                         weight_text_entry.show()
                         weight_button.set_text("Done")
                     else:
+                        # A valid weight must be entered before being able to return to the normal mode
                         if weight_text_entry.get_text() == "" or int(weight_text_entry.get_text()) < -99 or int(weight_text_entry.get_text()) > 99:
                             info_box.html_text = "Enter a weight from -99 to 99"
                             info_box.rebuild()
@@ -327,6 +336,7 @@ while not done:
 
                 elif event.ui_element == step_button:
                     step_to_be_made = True
+                # Pickup is the position to visit before the target is visited
                 elif event.ui_element == pickup_button:
                     if pickup_button.text == "Add Pickup":
                         pickup_button.set_text("Remove Pickup")
@@ -335,6 +345,7 @@ while not done:
                         pickup_button.set_text("Add Pickup")
                         pickup_pos = (-1, -1)
 
+        # Part of the dragging functionality (source, target, pickup) is handled here, as well as highlighting
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             column = pos[0] // (WIDTH + MARGIN)
@@ -355,7 +366,6 @@ while not done:
 
 
             elif (column == pickup_pos[1] and row == pickup_pos[0]):
-                print("right pos")
                 pickup_dragging = True
                 pickup_offset_x = ((MARGIN + WIDTH) * pickup_pos[1]) - pos[0]
                 pickup_offset_y = ((MARGIN + HEIGHT) * pickup_pos[0]) - pos[1]
@@ -377,6 +387,7 @@ while not done:
                             weights[row][column] = 1
                             erase_highlighting = True
 
+        # Done dragging and highlighting
         elif event.type == pygame.MOUSEBUTTONUP:
             start_dragging = False
             target_dragging = False
@@ -384,6 +395,7 @@ while not done:
             highlighting = False
             erase_highlighting = False
 
+        # Updates the position as the user moves an object or highlights cells
         elif event.type == pygame.MOUSEMOTION:
             pos = pygame.mouse.get_pos()
             if start_dragging:
@@ -399,13 +411,11 @@ while not done:
                 if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
                     target_pos = temp
             elif pickup_dragging:
-                print("pickup draggin")
                 pickup_x = pos[0] + pickup_offset_x
                 pickup_y = pos[1] + pickup_offset_y
                 temp = (pickup_y // (HEIGHT + MARGIN), pickup_x // (WIDTH + MARGIN))
                 if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
                     pickup_pos = temp
-                    print("here")
               
             elif highlighting or erase_highlighting:
                 weight_x = pos[0]
@@ -432,6 +442,8 @@ while not done:
         time_elapsed_since_last_action2 = 0
         print("here", len(building_mazes))
 
+    # Algorithm is running (either calculating the shortest path or drawing it) and it is appropriate to take a step now based
+    # on the time delay
     if curr_alg.running and time_elapsed_since_last_action1 > speed:
         if curr_alg.instance.drawing_shortest_path:
 
@@ -476,12 +488,11 @@ while not done:
     if curr_alg.instance and curr_alg.running and not curr_alg.instance.drawing_shortest_path and not curr_alg.instance.finding_shortest_path:
         curr_alg.algorithm_done()
 
-    #If there was an algorithm running before and the target has changed
+    # If there was an algorithm running before and the target has changed
     #  Then call new_target(target) -> can always check if target == curr_alg.instance.target
     if not curr_alg.running and curr_alg.alg_chosen and (not no_weights(grid)) and curr_alg.alg_name != "Johnsons":
         start_dragging = False 
     if not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance and target_pos != curr_alg.instance.target:
-      #  if curr_alg.alg_name != "A*" and curr_alg.alg_name != "Greedy BFS":
         shortest_pweight = curr_alg.instance.shortest_path_length
         if curr_alg.instance.new_target(target_pos): #this recalculates this way too often
             info_box.html_text = "Done running {}. Shortest path found had weight {}".format(curr_alg.alg_name, shortest_pweight)
@@ -490,11 +501,12 @@ while not done:
             info_box.html_text = "The target node could not be reached from the source vertex."
             info_box.rebuild()
         grid = curr_alg.instance.grid
+        curr_alg.instance.target = target_pos # Is this necessary?
 
     # Set the screen background
     screen.fill(BACKGROUND_COLOR)
 
-    # Draw the grid
+    # Draws the grid with the weights and colors on display
     for row in range(ROWS):
         for column in range(COLS):
             #need to rewrite this part
@@ -555,6 +567,7 @@ while not done:
                 screen.blit(surf, rectangle)
 
     if curr_alg.running and curr_alg.instance.drawing_shortest_path:
+        # Draws the arrow
         (curr_spath_row, curr_spath_col) = curr_node
         n_node_dir = curr_alg.instance.n_node_dir
         start_x_pos = (MARGIN + WIDTH)*curr_spath_col+ MARGIN
@@ -591,6 +604,7 @@ while not done:
     points = [(center_x, center_y),(center_x - WIDTH // 2, center_y - HEIGHT // 2),(center_x + WIDTH // 2, center_y), (center_x - WIDTH // 2, center_y + HEIGHT // 2)]
     pygame.draw.polygon(screen, START_COLOR, points)
 
+    # pickup is on the grid
     if pickup_pos != (-1, -1):
         pygame.draw.circle(screen, PICKUP_COLOR, ((MARGIN + WIDTH) * pickup_pos[1] + MARGIN + \
                        WIDTH//2,(MARGIN + HEIGHT) * pickup_pos[0] +MARGIN + HEIGHT//2), WIDTH//2, width=5)
@@ -609,10 +623,6 @@ while not done:
         y = r * math.sin(angle * i) + center_y
         points.append((x,y))
     pygame.draw.polygon(screen, TARGET_COLOR, points)
-
-    # target circle code
-    # pygame.draw.circle(screen, TARGET_COLOR, ((MARGIN + WIDTH) * target_pos[1] +\
-    #                    WIDTH//2, (MARGIN + HEIGHT) * target_pos[0] + HEIGHT//2), WIDTH//2)
 
     # Limit frames per second
     clock.tick(100)

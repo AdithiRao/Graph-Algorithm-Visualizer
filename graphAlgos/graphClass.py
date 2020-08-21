@@ -2,6 +2,10 @@ from copy import deepcopy
 from constants import *
 
 class GraphSearchBase:
+    '''
+    This is the base class on which all of the algorithms run. It initializes all of the relevant variables
+    and has variable helper functions that are used by either some or all of the graph algorithms.
+    '''
     def __init__(self, start, target, pickup, grid, weights):
         self.grid = grid
         self.start = start
@@ -46,6 +50,7 @@ class GraphSearchBase:
         if callable(finish):
             self.finish()
 
+    # This function deals with the repositioning of the target node
     def new_target(self, target):
         self.target = target
         curr_node_index = 0
@@ -63,6 +68,7 @@ class GraphSearchBase:
         self.found = True
         return True
 
+    # Generates the shortest path from source to target based on self.parents
     def generate_shortest_path(self):
         node= self.target
         self.shortest_path_length = 0
@@ -80,6 +86,7 @@ class GraphSearchBase:
         else:
             return False
 
+    # This function steps through the shortest path one node at a time, allowing for a clear animation
     def step_through_shortest_path(self):
         if len(self.shortest_path) > 0:
             (node_x, node_y) = self.shortest_path.pop()
@@ -93,6 +100,7 @@ class GraphSearchBase:
             self.drawing_shortest_path = False
             self.n_node_dir = None
 
+    # Updates the state of the nodes as necessary
     def grid_updates(self):
         if self.VISITED:
             (row, col) = self.VISITED

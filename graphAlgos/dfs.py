@@ -6,7 +6,6 @@ class DFS(GraphSearchBase):
     def __init__(self, start, target, pickup, grid, weights):
         super().__init__(start, target, pickup, grid, weights)
         self.stack = [(start,0)]
-        #self.walls = walls
 
     def finish(self):
         while self.stack:

@@ -6,6 +6,7 @@ def text_objects(text, font):
     textSurface = font.render(text, True, TEXT_COLOR)
     return textSurface, textSurface.get_rect()
 
+# Creates a button on the screen
 def button(screen, msg, x, y, width, height, inactive_color, active_color, action=None, *args):
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
