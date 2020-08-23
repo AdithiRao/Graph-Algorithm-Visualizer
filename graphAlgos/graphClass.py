@@ -1,5 +1,6 @@
 from copy import deepcopy
 from constants import *
+from collections import Counter
 
 class GraphSearchBase:
     '''
@@ -22,6 +23,7 @@ class GraphSearchBase:
         self.shortest_path_length = 0
 
         self.visited_set = set()
+        self.visited_set.add(start)
         self.directions = [(-1,0),(0,1),(1,0),(0,-1)]
         self.grid_height = len(self.grid)
         self.grid_width = len(self.grid[0])
@@ -55,6 +57,7 @@ class GraphSearchBase:
         self.target = target
         curr_node_index = 0
         self.grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+        #uses order_visited to keep track of number of nodes seen
         while curr_node_index < len(self.order_visited) and self.order_visited[curr_node_index] != target:
             curr_row, curr_col = self.order_visited[curr_node_index]
             self.grid[curr_row][curr_col] = VISITED

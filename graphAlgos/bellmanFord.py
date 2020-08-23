@@ -2,6 +2,11 @@ from graphAlgos.graphClass import GraphSearchBase
 from constants import FOUND
 
 class BELLMANFORD(GraphSearchBase):
+    '''
+    If a negative cycle is detected, then the nodes that are not reachable
+    or are part of a negative weights cycle will display as a node that does
+    not have a definitive shortest path and no shortest path will be drawn.
+    '''
     def __init__(self, start, target, pickup, grid, weights):
         super().__init__(start, target, pickup, grid, weights)
         self.vertex_dists = self.get_vertices(weights)

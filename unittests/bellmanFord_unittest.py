@@ -36,8 +36,8 @@ class TestBellmanFord(unittest.TestCase):
             instance.one_step()
         self.assertEqual(instance.shortest_path_length, 0)
 
-        instance.new_target((5, 0))
-        self.assertEqual(instance.shortest_path_length, 5)
+        # instance.new_target((5, 0))
+        # self.assertEqual(instance.shortest_path_length, 5)
 
     # def test_weights(self):
     #     start = (3, 3)
@@ -54,3 +54,6 @@ class TestBellmanFord(unittest.TestCase):
 
     #     instance.new_target((5, 0))
     #     self.assertEqual(instance.shortest_path_length, 5)
+
+    def test_negative_cycle(self):
+        pass

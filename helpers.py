@@ -6,13 +6,19 @@ import copy
 
 # Returns True if there are no weights on the grid
 def no_weights(grid):
-    no_weight = True
     for row in range(len(grid)):
         for col in range(len(grid[0])):
             if grid[row][col] != 0 and grid[row][col] != 1:
-                no_weight = False
-                return no_weight
-    return no_weight
+                return False
+    return True
+
+# Returns True if there are any highlighted cells
+def highlighted(grid):
+    for row in range(len(grid)):
+        for col in range(len(grid[0])):
+            if grid[row][col] == TO_WEIGHT:
+                return True
+    return False
 
 # Returns True if the point is in range of the grid
 def check_in_bounds(point):
@@ -25,13 +31,11 @@ def check_in_bounds(point):
 
 # Returns True if there are any negative weights on the grid
 def negative_weights(grid):
-    neg = False
     for row in range(len(grid)):
         for col in range(len(grid[0])):
             if grid[row][col] < 0:
-                neg = True
-                return neg
-    return neg
+                return True
+    return False
 
 # Creates random positive weights in the range 1-99 for the entire grid
 def arb_pos_weights():

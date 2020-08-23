@@ -42,30 +42,27 @@ class CurrGraphAlgorithm():
             self.description = "Dijkstra uses a priority queue to determine the" \
                                " smallest weight nodes to traverse next."
         elif alg == "A*":
-            if self.heuristic == "Heuristic: Euclidean Dst.":
-                self.description = "A* uses a priority queue and a heuristic to guide" \
-                                   " the searching process. Here the heuristic is straight"\
-                                   " line distance."
-            elif self.heuristic == "Heuristic: Manhattan Dst.":
-                self.description = "A* uses a priority queue and a heuristic to guide" \
-                                   " the searching process. Here the heuristic is taxicab"\
-                                   " distance."
+            self.description = "A* uses a priority queue and a heuristic to guide" \
+                                " the searching process."
         elif alg == "Greedy BFS":
-            if self.heuristic == "Heuristic: Euclidean Dst.":
-                self.description = "Greedy BFS is very similar to A*- however it only uses a heuristic to"\
-                                "guide the searching process rather than also considering the elements' weight."\
-                                 " Here the heuristic is straight line distance."
-            elif self.heuristic == "Heuristic: Manhattan Dst.":
-                self.description = "Greedy BFS is very similar to A*- however it only uses a heuristic to"\
-                                    "guide the searching process rather than also considering the elements' weight."\
-                                    " Here the heuristic is taxicab distance."
+            self.description = "Greedy BFS is very similar to A*- however it only uses a heuristic to"\
+                                "guide the searching process rather than also considering the elements' weight."                     
         elif alg == "Bellman Ford":
             self.description = "Bellman Ford is an algorithm capable of dealing with negative weights. It uses k-hop distances"\
                                 "to determine if a node is caught in a negative cycle. "
         elif alg == "Johnsons":
             self.description = "Johnsons solves the All-Pairs-Shortest-Paths problem."
+        
+        if alg == "Greedy BFS" or alg == "A*":
+            if self.heuristic == "Heuristic: Euclidean Dst.":
+                self.description += " Here the heuristic is straight line distance."
+            elif self.heuristic == "Heuristic: Manhattan Dst.":
+                 self.description += " Here the heuristic is taxicab distance."
+            elif self.heuristic == "Heuristic: Chebyshev Dst.":
+                self.description += " Here the heuristic is chebyshev distance."
+            elif self.heuristic == "Heuristic: Octile Dst.":
+                self.description += " Here the heuristic is octile distance."
 
-    
     def start_algorithm(self, params, grid, weights):
         self.running = True
         (start, target, pickup) = params
@@ -73,6 +70,10 @@ class CurrGraphAlgorithm():
             heuristic = lambda r,c: math.sqrt((target[0]-r)**2 + (target[1]-c)**2)
         elif self.heuristic == "Heuristic: Manhattan Dst.":
             heuristic = lambda r,c: abs(target[0]-r) + abs(target[1]-c)
+        elif self.heuristic == "Heuristic: Chebyshev Dst.":
+            heuristic = lambda r,c: (abs(target[0]-r) + abs(target[1]-c)) + (-1) * min(abs(target[0]-r), abs(target[1]-c))
+        elif self.heuristic == "Heuristic: Octile Dst.":
+            heuristic = lambda r,c: (abs(target[0]-r) + abs(target[1]-c)) + (math.sqrt(2)-2) * min(abs(target[0]-r), abs(target[1]-c))
         if pickup == (-1, -1):
             pickup = None
         if self.alg_name == "Breadth First Search":

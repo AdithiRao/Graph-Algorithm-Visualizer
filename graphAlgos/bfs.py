@@ -12,8 +12,9 @@ class BFS(GraphSearchBase):
     def finish(self):
         while self.queue:
             (curr_row, curr_col), curr_len = self.queue.popleft()
+            self.curr_node = (curr_row, curr_col)
             self.order_visited.append(self.curr_node)
-            
+
             for dir in self.directions:
                 if self.valid_to_visit(curr_row+dir[0], curr_col+dir[1]):
                     self.queue.append(((curr_row+dir[0], curr_col+dir[1]), curr_len+1))
@@ -30,18 +31,20 @@ class BFS(GraphSearchBase):
             (curr_row, curr_col), curr_len = self.queue[0]
             self.shortest_path_length = curr_len + 1
             self.curr_node = (curr_row, curr_col)
-            self.order_visited.append(self.curr_node)
             self.grid_updates()
+
             if (curr_row, curr_col) == self.target:
                 self.done()
                 return
+                
+            self.order_visited.append(self.curr_node)
             self.queue.popleft()
-
             for dir in self.directions:
                 if self.valid_to_visit(curr_row+dir[0], curr_col+dir[1]):
                     self.queue.append(((curr_row+dir[0], curr_col+dir[1]), curr_len+1))
                     self.visited_set.add((curr_row+dir[0], curr_col+dir[1]))
-                    self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col)
+                    self.parents[curr_row+dir[0]][curr_col+dir[1]] = (curr_row, curr_col) 
+
             self.finding_shortest_path = True
         else:
             self.finding_shortest_path = False
