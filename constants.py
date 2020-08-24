@@ -32,6 +32,8 @@ WALL = 5
 CURR_VISITING = 6
 VISITED = 7
 DONE_VISITING = 8
+PICKUP_VISITED = 9
+DONE_PICKUP_VISITING = 10
 
 # Growth rate of square of a visited block- takes NUM_COLOR_STEPS to reach full WIDTH and HEIGHT
 NUM_COLOR_STEPS = 15
@@ -50,14 +52,20 @@ BACKGROUND_COLOR = Color("#003d47")
 # Colors of nodes that have been visited
 COLORS = {}
 COLORS[NOT_VISITED] = (255,255,255)
-COLORS[VISITED] = Color("#ed7a0e")
-COLORS[CURR_VISITING] = Color("#a8eb34")
-COLORS[DONE_VISITING] = Color("#34ebbd")
+COLORS[VISITED] = Color("#62F786")
+COLORS[PICKUP_VISITED] = Color("#EEAA21")
+COLORS[CURR_VISITING] = Color("#F3F76E")
+COLORS[DONE_VISITING] = Color("#629FF7")
+COLORS[DONE_PICKUP_VISITING] = Color("#F7627D") 
 COLORS[FOUND] = Color("#80aebe")
-COLORS[SHORTEST_PATH_NODE] = Color("#05ffe6")
+COLORS[SHORTEST_PATH_NODE] = Color("#CEF74F")
 COLORS[TO_WEIGHT] = Color("#470f00")
 COLORS[WEIGHTED] = Color("#61869b")
 COLORS[WALL] = Color("#007e80")
+
+DONE_MAPPING = {}
+DONE_MAPPING[VISITED] = DONE_VISITING
+DONE_MAPPING[PICKUP_VISITED] = DONE_PICKUP_VISITING
 
 WHITE = (255,255,255)
 
@@ -67,7 +75,7 @@ TARGET_COLOR = Color("#10a0cc")
 PICKUP_COLOR = Color("#ff6600")
 
 # Shortest path arrow color
-ARROW_COLOR = Color("#05ffe6")
+ARROW_COLOR = Color("#9DCA13")
 
 # Text used for drawing weights color
 TEXT_COLOR = (30, 100, 120)
