@@ -67,13 +67,13 @@ class CurrGraphAlgorithm():
         self.running = True
         (start, target, pickup) = params
         if self.heuristic == "Heuristic: Euclidean Dst.":
-            heuristic = lambda r,c: math.sqrt((target[0]-r)**2 + (target[1]-c)**2)
+            heuristic = lambda pt,tar: math.sqrt((tar[0]-pt[0])**2 + (tar[1]-pt[1])**2)
         elif self.heuristic == "Heuristic: Manhattan Dst.":
-            heuristic = lambda r,c: abs(target[0]-r) + abs(target[1]-c)
+            heuristic = lambda pt,tar: abs(tar[0]-pt[0]) + abs(tar[1]-pt[1])
         elif self.heuristic == "Heuristic: Chebyshev Dst.":
-            heuristic = lambda r,c: (abs(target[0]-r) + abs(target[1]-c)) + (-1) * min(abs(target[0]-r), abs(target[1]-c))
+            heuristic = lambda pt,tar: (abs(tar[0]-pt[0]) + abs(tar[1]-pt[1])) + (-1) * min(abs(tar[0]-pt[0]), abs(tar[1]-pt[1]))
         elif self.heuristic == "Heuristic: Octile Dst.":
-            heuristic = lambda r,c: (abs(target[0]-r) + abs(target[1]-c)) + (math.sqrt(2)-2) * min(abs(target[0]-r), abs(target[1]-c))
+            heuristic = lambda pt,tar: (abs(tar[0]-pt[0]) + abs(tar[1]-pt[1])) + (math.sqrt(2)-2) * min(abs(tar[0]-pt[0]), abs(tar[1]-pt[1]))
         if pickup == (-1, -1):
             pickup = None
         if self.alg_name == "Breadth First Search":
@@ -93,3 +93,4 @@ class CurrGraphAlgorithm():
 
     def algorithm_done(self):
         self.running = False
+        self.instance = None

@@ -1,29 +1,22 @@
 #Grid creation citation: http://programarcadegames.com/index.php?lang=en&chapter=array_backed_grids
 
 '''
-@Kanvi
-TODO: add good theme.json file to make a theme for GUI elements
-TODO: Swarm, bidirectional swarm (I couldn't find anything about these)- text me when you get here,
-      I would do everything else first. Maybe just look up bidirectional search
-TODO: Add speed label to the speed slider
-TODO: Get scroll bar to work on text box
-TODO: Allow the algo to be cleared in the middle (which would stop it): need to set instance = None and running to false
-TODO: Have an info popup showing how to use everything
-TODO: redesign menu order/location/sizing
-TODO: Fix the rendering time, somehow increase the max speed
-TODO: Fix color scheme of search to go with gui colors
-
 @Adithi
-TODO: Make the drawing speed faster when more nodes
-TODO: Fix bellman-ford: Terminates weirdly with no weights and doesnt work with no weights
 TODO: drawing the path for dfs
 TODO: Add builtin graphs (one with negative cycles, maze, unreachable areas, 4x4 blocks)
-TODO: Add feature to first visit other node
+TODO: Bellmanford color seems weird- one weird one
+TODO: Need to figure out what to do with bellman ford negative cycles
 TODO: Johnsons
-TODO: Documentation and unittests 
 
-@General
+TODO: Make the drawing speed of shortest path faster when more nodes 
+TODO: Improve the rendering time, increase the max speed
+TODO: Have an info popup showing how to use everything
+TODO: Swarm, bidirectional swarm 
+TODO: Get scroll bar to work on text box
 TODO: Stylize main.py and add comments to other files
+TODO: Add speed label to the speed slider
+TODO: Redesign menu order/location/sizing
+TODO: Documentation and unittests 
 
 
 '''
@@ -58,9 +51,12 @@ done = False
 
 # Various animation run-time variables
 font = pygame.font.SysFont('couriernewttf', 2*HEIGHT//3)
-start_pos = (ROWS//2,COLS//3)
-target_pos = (ROWS//2,COLS*2//3)
-pickup_pos = (-1, -1)
+# start_pos = (ROWS//2,COLS//3)
+# target_pos = (ROWS//2,COLS*2//3)
+# pickup_pos = (-1, -1)
+start_pos = (4,16)
+target_pos = (4, 23)
+pickup_pos = (2, 19)
 start_dragging = False
 target_dragging = False
 pickup_dragging = False
@@ -159,7 +155,7 @@ heuristics_list = ["Heuristic: Euclidean Dst.", "Heuristic: Manhattan Dst.", "He
                     "Heuristic: Octile Dst."]
 heuristics_dropdown = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(heuristics_list,
                         "Heuristic: Euclidean Dst.",
-                        pygame.Rect((MENU_COL(2), MENU_ROW(3)), BUTTON_SIZE),
+                        pygame.Rect((MENU_COL(3), MENU_ROW(3)), BUTTON_SIZE),
                         manager=manager)
 heuristics_dropdown.hide()
 weights_warning_window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect(((GRID_SIZE[0]-WARNING_WINDOW_SIZE[0])//2,
@@ -212,12 +208,70 @@ def disable_all():
     speed_button.disable()
     pickup_button.disable()
 
+def clear_path():
+    global grid
+    grid = curr_alg.newGrid(NOT_VISITED)
+
+def clear_weights():
+    global weights
+    weights = curr_alg.newGrid(1)
+
 # Draws all the nodes the color they're supposed to be
 def draw_grid():
     global grid
     for row in range(ROWS):
-            for column in range(COLS):
-                color = WHITE
+        for column in range(COLS):
+            color = WHITE
+            pygame.draw.rect(screen,
+                            color,
+                            [(MARGIN + WIDTH) * column + MARGIN,
+                            (MARGIN + HEIGHT) * row + MARGIN,
+                            WIDTH,
+                            HEIGHT])
+
+            #growing is messed up
+            if grid[row][column] == VISITED: 
+                sizes_and_steps[row][column] = base_square(row, column)
+                grid[row][column] = DONE_VISITING
+            elif grid[row][column] == PICKUP_VISITED:
+                sizes_and_steps[row][column] = base_square(row, column)
+                grid[row][column] = DONE_PICKUP_VISITING
+
+            cell = grid[row][column]
+            weight_cell = weights[row][column]
+            if weight_cell == 0:
+                color = COLORS[WALL]
+            else:
+                color = COLORS[cell]
+
+            cell_left = (MARGIN + WIDTH) * column + MARGIN
+            cell_top = (MARGIN + HEIGHT) * row + MARGIN
+
+            if cell == DONE_PICKUP_VISITING or cell == DONE_VISITING:
+                (left, top, width, height, step) = sizes_and_steps[row][column]
+                (left, top, width, height, color) = grow(left, top, width, height, step,
+                                                        cell_left, cell_top, cell)
+                sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_COLOR_STEPS))
+                rect = pygame.Rect(left, top, width, height)
+                if width == WIDTH and height == HEIGHT:
+                    draw_rounded_rect(screen, rect, color, 0)
+                else:
+                    draw_rounded_rect(screen, rect, color, min(width, height)//3)
+            elif cell == SHORTEST_PATH_NODE and (row, column) != curr_node:
+                target_left = cell_left #- 4*MARGIN
+                target_top = cell_top  #- 4*MARGIN
+                (left, top, width, height, step) = sizes_and_steps[row][column]
+                if step == NUM_COLOR_STEPS:
+                    (left, top, width, height, step) = base_square(row, column)
+                (left, top, width, height, color) = grow(left, top, width, height, step,
+                                                        target_left, target_top, SHORTEST_PATH_NODE)
+                sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_SP_COLOR_STEPS))
+                rect = pygame.Rect(left, top, width, height)
+                if width == SP_WIDTH and height == SP_HEIGHT:
+                    draw_rounded_rect(screen, rect, color, 0)
+                else:
+                    draw_rounded_rect(screen, rect, color, min(width, height)//3)
+            elif not (curr_alg.running and curr_alg.instance.drawing_shortest_path and (row, column) == curr_node):
                 pygame.draw.rect(screen,
                                 color,
                                 [(MARGIN + WIDTH) * column + MARGIN,
@@ -225,53 +279,11 @@ def draw_grid():
                                 WIDTH,
                                 HEIGHT])
 
-                cell = grid[row][column]
-                weight_cell = weights[row][column]
-                if weight_cell == 0:
-                    color = COLORS[WALL]
-                else:
-                    color = COLORS[cell]
-
-                cell_left = (MARGIN + WIDTH) * column + MARGIN
-                cell_top = (MARGIN + HEIGHT) * row + MARGIN
-
-                if cell == VISITED:
-                    (left, top, width, height, step) = sizes_and_steps[row][column]
-                    (left, top, width, height, color) = grow(left, top, width, height, step,
-                                                            cell_left, cell_top, VISITED)
-                    sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_COLOR_STEPS))
-                    rect = pygame.Rect(left, top, width, height)
-                    if width == WIDTH and height == HEIGHT:
-                        draw_rounded_rect(screen, rect, color, 0)
-                    else:
-                        draw_rounded_rect(screen, rect, color, min(width, height)//3)
-                elif cell == SHORTEST_PATH_NODE and (row, column) != curr_node:
-                    target_left = cell_left - 4*MARGIN
-                    target_top = cell_top  - 4*MARGIN
-                    (left, top, width, height, step) = sizes_and_steps[row][column]
-                    if step == NUM_COLOR_STEPS:
-                        (left, top, width, height, step) = base_square(row, column)
-                    (left, top, width, height, color) = grow(left, top, width, height, step,
-                                                            target_left, target_top, SHORTEST_PATH_NODE)
-                    sizes_and_steps[row][column] = (left, top, width, height, min(step+1, NUM_SP_COLOR_STEPS))
-                    rect = pygame.Rect(left, top, width, height)
-                    if width == WIDTH + 6*MARGIN and height == HEIGHT + 6*MARGIN:
-                        draw_rounded_rect(screen, rect, color, 0)
-                    else:
-                        draw_rounded_rect(screen, rect, color, min(width, height)//3)
-                elif not (curr_alg.running and curr_alg.instance.drawing_shortest_path and (row, column) == curr_node):
-                    pygame.draw.rect(screen,
-                                    color,
-                                    [(MARGIN + WIDTH) * column + MARGIN,
-                                    (MARGIN + HEIGHT) * row + MARGIN,
-                                    WIDTH,
-                                    HEIGHT])
-
-                if weight_cell != 0 and weight_cell != 1:
-                    surf = font.render(str(weight_cell), True, (0,0,0))
-                    rectangle = surf.get_rect()
-                    rectangle.center = ((MARGIN + WIDTH) * column + MARGIN + WIDTH/2, (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2)
-                    screen.blit(surf, rectangle)
+            if weight_cell != 0 and weight_cell != 1:
+                surf = font.render(str(weight_cell), True, (0,0,0))
+                rectangle = surf.get_rect()
+                rectangle.center = ((MARGIN + WIDTH) * column + MARGIN + WIDTH/2, (MARGIN + HEIGHT) * row + MARGIN + HEIGHT/2)
+                screen.blit(surf, rectangle)
 
 # Draws the shortest path arrow
 def draw_arrow():
@@ -347,12 +359,114 @@ def update_text_box():
     info_box.html_text = info
     info_box.rebuild()
 
+# Drags pickup, target and start if it is an appropriate position
+def drag(offset_x, offset_y, name):
+    global start_pos, pickup_pos, target_pos, grid, weights, adding_weights, adding_walls
+    pos = pygame.mouse.get_pos()
+    x = pos[0] + offset_x
+    y = pos[1] + offset_y
+    temp = (y // (HEIGHT + MARGIN), x // (WIDTH + MARGIN))
+    if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
+        if name == "start":
+            start_pos = temp  
+        elif name == "pickup":
+            pickup_pos = temp
+        elif name == "target":
+            target_pos = temp
+        elif name == "highlight":
+            if adding_weights:
+                if highlighting and grid[temp[0]][temp[1]] != TO_WEIGHT:
+                    grid[temp[0]][temp[1]] = TO_WEIGHT
+                elif erase_highlighting:
+                    grid[temp[0]][temp[1]] = NOT_VISITED
+            elif adding_walls:
+                if highlighting and weights[temp[0]][temp[1]] != 0 and temp != start_pos and temp != target_pos:
+                    weights[temp[0]][temp[1]] = 0
+                elif erase_highlighting:
+                    weights[temp[0]][temp[1]] = 1
+
+# Creates the appropriate maze 
+def maze_options():
+    global curr_alg, grid, weights, building_mazes
+    curr_alg.algorithm_done()
+    grid = curr_alg.newGrid(NOT_VISITED)
+    if graphs_dropdown.selected_option == "Arbitrary Positive Weights":
+        weights = arb_pos_weights()
+    elif graphs_dropdown.selected_option == "Arbitrary Weights":
+        weights = arb_weights()
+    elif graphs_dropdown.selected_option == "Maze: Rec Backtracking":
+        weights = recursive_backtracking_maze(start_pos, target_pos)
+    elif graphs_dropdown.selected_option == "Maze: Rec Division":
+        building_mazes = recursive_division_maze(start_pos, target_pos)
+        building_mazes.reverse()
+        # for maze in building_mazes:
+        #     weights = maze
+
+# Deals with all the weight related actions
+def weight_action():
+    global adding_weights, adding_walls, info_box_message, grid, weights
+    if not adding_weights:
+        adding_weights = True
+        adding_walls = False
+        start_button.disable()
+        weight_text_entry.show()
+        weight_button.set_text("Done")
+    else:
+        # A valid weight must be entered before being able to return to the normal mode
+        if (weight_text_entry.get_text() == "" or int(weight_text_entry.get_text()) < -99 or int(weight_text_entry.get_text()) > 99) and highlighted(grid):
+            info_box_message = "Enter a weight from -99 to 99"
+        else:
+            info_box_message = "Run an algorithm!"
+            adding_weights = False
+            adding_walls = True
+            start_button.enable()
+            weight_text_entry.hide()
+            weight_button.set_text("Add Weights")
+            for row in range(ROWS):
+                for col in range(COLS):
+                    if grid[row][col] == TO_WEIGHT:
+                        weights[row][col] = int(weight_text_entry.get_text())
+            weight_text_entry.set_text("")
+            for row in range(ROWS):
+                grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
+
+# Starts the algorithm if the graph is of the right format for the alg chosen
+def start_alg():
+    global weights, adding_walls, adding_weights, size_and_steps, start_pos, target_pos, pickup_pos, grid
+    if (not no_weights(weights)) and \
+        (algorithms_dropdown.selected_option == "Breadth First Search" or\
+        algorithms_dropdown.selected_option == "Depth First Search"):
+        weights_warning_window.show()
+        adding_walls = False
+        disable_all()
+        weight_button.disable()
+        clear_weights_walls_button.disable()
+    # Negative weights don't work with Dijkstras, A* or best first search
+    elif negative_weights(weights) and \
+        (algorithms_dropdown.selected_option == "Dijkstra's" or\
+        algorithms_dropdown.selected_option == "A*" or\
+        algorithms_dropdown.selected_option == "Greedy BFS"):
+        neg_weights_warning_window.show()
+        adding_walls = False
+        disable_all()
+        weight_button.disable()
+        clear_weights_walls_button.disable()
+    else:
+        clear_path()
+        init_sizes_and_steps(sizes_and_steps)
+        curr_alg.start_algorithm((start_pos, target_pos, pickup_pos),
+                                    grid, weights)
+        adding_walls = False
+        adding_weights = False
+        weight_button.disable()
+        clear_weights_walls_button.disable()
+
 # Takes the appropriate algorithm step
 def algo_step():
-    global curr_alg, time_elapsed_since_last_action1, info_box_message, grid, curr_node, shortest_pweight
+    global curr_alg, time_elapsed_since_last_action1, info_box_message, grid, curr_node, shortest_pweight, step_to_be_made
     # Algorithm is running (either calculating the shortest path or drawing it) and it is appropriate to take a step now based
     # on the time delay
-    
+
     if curr_alg.running and time_elapsed_since_last_action1 > speed:
         if curr_alg.instance.drawing_shortest_path:
             # We are currently drawing the shortest path
@@ -387,12 +501,13 @@ def algo_step():
         info_box_message = curr_alg.description
 
     if curr_alg.instance and curr_alg.running and not curr_alg.instance.drawing_shortest_path and not curr_alg.instance.finding_shortest_path:
-        curr_alg.algorithm_done()
+        curr_alg.running = False
 
-    # If there was an algorithm running before and the target has changed
+    # If there was an algorithm running before and the target has changed 
     #  Then call new_target(target) -> can always check if target == curr_alg.instance.target
-    if not curr_alg.running and curr_alg.alg_chosen and (not no_weights(grid)) and curr_alg.alg_name != "Johnsons":
-        start_dragging = False 
+    # no_weights(grid) checks if any of the colors are on the board
+  #  if not curr_alg.running and curr_alg.alg_chosen and (not no_weights(grid)) and curr_alg.alg_name != "Johnsons":
+   #     start_dragging = False 
     if not curr_alg.running and curr_alg.alg_chosen and curr_alg.instance and target_pos != curr_alg.instance.target:
         if curr_alg.instance.new_target(target_pos): #this recalculates this way too often
             shortest_pweight = curr_alg.instance.shortest_path_length
@@ -424,7 +539,7 @@ def main():
                         start_button.enable()
                         grid = curr_alg.newGrid(NOT_VISITED)
                         curr_alg.update_description(algorithms_dropdown.selected_option)
-                        curr_alg.instance = None
+                        curr_alg.algorithm_done()
                         if algorithms_dropdown.selected_option == "A*" or \
                             algorithms_dropdown.selected_option == "Greedy BFS":
                             heuristics_dropdown.show()
@@ -434,19 +549,8 @@ def main():
                         curr_alg.heuristic = heuristics_dropdown.selected_option
                         curr_alg.update_description(algorithms_dropdown.selected_option)
                     elif event.ui_element == graphs_dropdown:
-                        curr_alg.instance = None
-                        grid = curr_alg.newGrid(NOT_VISITED)
-                        if graphs_dropdown.selected_option == "Arbitrary Positive Weights":
-                            weights = arb_pos_weights()
-                        elif graphs_dropdown.selected_option == "Arbitrary Weights":
-                            weights = arb_weights()
-                        elif graphs_dropdown.selected_option == "Maze: Rec Backtracking":
-                            weights = recursive_backtracking_maze(start_pos, target_pos)
-                        elif graphs_dropdown.selected_option == "Maze: Rec Division":
-                            building_mazes = recursive_division_maze(start_pos, target_pos)
-                            building_mazes.reverse()
-                            # for maze in building_mazes:
-                            #     weights = maze
+                        maze_options()
+                        
                 speed = speed_button.get_current_value()
                 if speed == 0.1:
                     step_button.show()
@@ -467,72 +571,24 @@ def main():
                         enable_all()
                     elif event.ui_element == start_button and algo_selected:
                         # Weights don't work with bfs or dfs
-                        if (not no_weights(weights)) and \
-                            (algorithms_dropdown.selected_option == "Breadth First Search" or\
-                            algorithms_dropdown.selected_option == "Depth First Search"):
-                            weights_warning_window.show()
-                            adding_walls = False
-                            disable_all()
-                            weight_button.disable()
-                            clear_weights_walls_button.disable()
-                        # Negative weights don't work with Dijkstras, A* or best first search
-                        elif negative_weights(weights) and \
-                            algorithms_dropdown.selected_option == "Dijkstra's" or\
-                            algorithms_dropdown.selected_option == "A*: Euclidean Distance" or\
-                            algorithms_dropdown.selected_option == "A*: Manhattan Distance" or\
-                            algorithms_dropdown.selected_option == "Greedy BFS":
-                            neg_weights_warning_window.show()
-                            adding_walls = False
-                            disable_all()
-                            weight_button.disable()
-                            clear_weights_walls_button.disable()
-                        else:
-                            grid = curr_alg.newGrid(NOT_VISITED)
-                            init_sizes_and_steps(sizes_and_steps)
-                            curr_alg.start_algorithm((start_pos, target_pos, pickup_pos),
-                                                        grid, weights)
-                            adding_walls = False
-                            adding_weights = False
-                            weight_button.disable()
-                            clear_weights_walls_button.disable()
+                        start_alg()
                     elif event.ui_element == clear_all_button:
-                        curr_alg.instance = None
-                        grid = curr_alg.newGrid(NOT_VISITED)
-                        weights = curr_alg.newGrid(1)
+                        curr_alg.algorithm_done() 
+                        clear_path()
+                        clear_weights()
                         adding_walls = True
                         adding_weights = False
                         weight_button.enable()
                         clear_weights_walls_button.enable()
                     elif event.ui_element == clear_path_button:
-                        grid = curr_alg.newGrid(NOT_VISITED)
+                        curr_alg.algorithm_done() 
+                        clear_path()
                     elif event.ui_element == clear_weights_walls_button:
-                        weights = curr_alg.newGrid(1)
+                        curr_alg.algorithm_done() 
+                        clear_weights()
                     # Allows users to add weights to the grid
                     elif event.ui_element == weight_button:
-                        if not adding_weights:
-                            adding_weights = True
-                            adding_walls = False
-                            start_button.disable()
-                            weight_text_entry.show()
-                            weight_button.set_text("Done")
-                        else:
-                            # A valid weight must be entered before being able to return to the normal mode
-                            if (weight_text_entry.get_text() == "" or int(weight_text_entry.get_text()) < -99 or int(weight_text_entry.get_text()) > 99) and highlighted(grid):
-                                info_box_message = "Enter a weight from -99 to 99"
-                            else:
-                                info_box_message = "Run an algorithm!"
-                                adding_weights = False
-                                adding_walls = True
-                                start_button.enable()
-                                weight_text_entry.hide()
-                                weight_button.set_text("Add Weights")
-                                for row in range(ROWS):
-                                    for col in range(COLS):
-                                        if grid[row][col] == TO_WEIGHT:
-                                            weights[row][col] = int(weight_text_entry.get_text())
-                                weight_text_entry.set_text("")
-                                for row in range(ROWS):
-                                    grid[row] = [NOT_VISITED if x == TO_WEIGHT else x for x in grid[row]]
+                        weight_action()
 
                     elif event.ui_element == step_button:
                         step_to_be_made = True
@@ -544,6 +600,7 @@ def main():
                         else:
                             pickup_button.set_text("Add Pickup")
                             pickup_pos = (-1, -1)
+                        clear_path()
 
             # Part of the dragging functionality (source, target, pickup) is handled here, as well as highlighting
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -551,7 +608,8 @@ def main():
                 column = pos[0] // (WIDTH + MARGIN)
                 row = pos[1] // (HEIGHT + MARGIN)
 
-                if (column == target_pos[1] and row == target_pos[0] and not curr_alg.running):
+                if column == target_pos[1] and row == target_pos[0] and not curr_alg.running:
+                    # cannot move target in greedy bfs and A* cases
                     if curr_alg.alg_chosen and curr_alg.instance != None and (curr_alg.alg_name == "A*" or curr_alg.alg_name == "Greedy BFS"):
                         target_dragging = False
                     else:
@@ -560,15 +618,20 @@ def main():
                         target_offset_y = ((MARGIN + HEIGHT) * target_pos[0]) - pos[1]
 
                 elif (column == start_pos[1] and row == start_pos[0] and not curr_alg.running):
-                    start_dragging = True
-                    start_offset_x = ((MARGIN + WIDTH) * start_pos[1]) - pos[0]
-                    start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
-
+                    if curr_alg.alg_chosen and curr_alg.instance != None and curr_alg.alg_name != "Johnsons":
+                        start_dragging = False
+                    else:
+                        start_dragging = True
+                        start_offset_x = ((MARGIN + WIDTH) * start_pos[1]) - pos[0]
+                        start_offset_y = ((MARGIN + HEIGHT) * start_pos[0]) - pos[1]
 
                 elif (column == pickup_pos[1] and row == pickup_pos[0]):
-                    pickup_dragging = True
-                    pickup_offset_x = ((MARGIN + WIDTH) * pickup_pos[1]) - pos[0]
-                    pickup_offset_y = ((MARGIN + HEIGHT) * pickup_pos[0]) - pos[1]
+                    if curr_alg.alg_chosen and curr_alg.instance != None and curr_alg.alg_name != "Johnsons":
+                        pickup_dragging = False
+                    else:
+                        pickup_dragging = True
+                        pickup_offset_x = ((MARGIN + WIDTH) * pickup_pos[1]) - pos[0]
+                        pickup_offset_y = ((MARGIN + HEIGHT) * pickup_pos[0]) - pos[1]
 
                 elif check_in_bounds((row, column)):
                     if adding_weights or adding_walls:
@@ -599,38 +662,14 @@ def main():
             elif event.type == pygame.MOUSEMOTION:
                 pos = pygame.mouse.get_pos()
                 if start_dragging:
-                    start_x = pos[0] + start_offset_x
-                    start_y = pos[1] + start_offset_y
-                    temp = (start_y // (HEIGHT + MARGIN), start_x // (WIDTH + MARGIN))
-                    if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
-                        start_pos = temp
+                    drag(start_offset_x, start_offset_y, "start")
                 elif target_dragging:
-                    target_x = pos[0] + target_offset_x
-                    target_y = pos[1] + target_offset_y
-                    temp = (target_y // (HEIGHT + MARGIN), target_x // (WIDTH + MARGIN))
-                    if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
-                        target_pos = temp
+                    drag(target_offset_x, target_offset_y, "target")
                 elif pickup_dragging:
-                    pickup_x = pos[0] + pickup_offset_x
-                    pickup_y = pos[1] + pickup_offset_y
-                    temp = (pickup_y // (HEIGHT + MARGIN), pickup_x // (WIDTH + MARGIN))
-                    if check_in_bounds(temp) and weights[temp[0]][temp[1]] != 0:
-                        pickup_pos = temp              
+                    drag(pickup_offset_x, pickup_offset_y, "pickup")           
                 elif highlighting or erase_highlighting:
-                    weight_x = pos[0]
-                    weight_y = pos[1]
-                    temp = (weight_y // (HEIGHT + MARGIN), weight_x // (WIDTH + MARGIN))
-                    if check_in_bounds(temp):
-                        if adding_weights:
-                            if highlighting and grid[temp[0]][temp[1]] != TO_WEIGHT:
-                                grid[temp[0]][temp[1]] = TO_WEIGHT
-                            elif erase_highlighting:
-                                grid[temp[0]][temp[1]] = NOT_VISITED
-                        elif adding_walls:
-                            if highlighting and weights[temp[0]][temp[1]] != 0 and temp != start_pos and temp != target_pos:
-                                weights[temp[0]][temp[1]] = 0
-                            elif erase_highlighting:
-                                weights[temp[0]][temp[1]] = 1
+                    drag(0, 0, "highlight")
+                        
             manager.process_events(event)
 
         manager.update(time_delta)

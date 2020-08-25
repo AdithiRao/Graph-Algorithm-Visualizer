@@ -60,7 +60,34 @@ class BELLMANFORD(GraphSearchBase):
         self.vertex_dists = new_vertex_dists
         return vertices_to_process
 
-    def one_step(self):
+    def pickup_step(self):
+        if self.drawing_shortest_path:
+            self.step_through_shortest_path()
+            return
+        if self.neg_cycle:
+            self.finding_shortest_path = False
+            return
+        if not self.vertices_to_process:
+            self.vertices_to_process = self.one_round()
+        if self.vertices_to_process:
+            self.finding_shortest_path = True
+            self.curr_node = self.vertices_to_process.pop()
+            self.shortest_path_length_thusfar = self.vertex_dists[self.curr_node]
+            if self.curr_node == self.pickup:
+                #need to reset a bunch of variables here
+                self.pickup_order_visited = self.order_visited
+                self.order_visited = [self.pickup]
+                self.vertex_dists = self.get_vertices(self.weights)
+                self.vertex_dists[self.pickup] = 0
+                self.iteration = 0
+                self.neg_cycle = False
+                self.vertices_to_process = [self.pickup]
+                self.shortest_path_length_thusfar = None
+                self.pickup_done()
+                return
+            self.grid_updates()
+
+    def target_step(self):
         if self.drawing_shortest_path:
             self.step_through_shortest_path()
             return

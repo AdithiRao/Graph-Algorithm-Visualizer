@@ -203,19 +203,19 @@ def lerp(v0, v1, t):
 
 # Grows the cell coordinates to create a more visually appealing graphic 
 def grow(left, top, width, height, step, left_pos_to_reach, top_pos_to_reach, state):
-    if state == VISITED:
+    if state == DONE_PICKUP_VISITING or state == DONE_VISITING:
         if width == WIDTH or height == HEIGHT:
-            return (left, top, WIDTH, HEIGHT, COLORS[DONE_VISITING])
+            return (left, top, WIDTH, HEIGHT, END_COLOR[state])
 
         new_left = max(left-(WIDTH_GROWTH_STEP_SIZE/2), left_pos_to_reach)
         new_top = max(top-(HEIGHT_GROWTH_STEP_SIZE/2), top_pos_to_reach)
         new_width = min(width+WIDTH_GROWTH_STEP_SIZE, WIDTH)
         new_height = min(height+HEIGHT_GROWTH_STEP_SIZE, HEIGHT)
         
-        rgb = (float(COLORS[VISITED].r), float(COLORS[VISITED].g), float(COLORS[VISITED].b))
-        target_rgb = (float(COLORS[DONE_VISITING].r), float(COLORS[DONE_VISITING].g), float(COLORS[DONE_VISITING].b))
+        rgb = (float(COLORS[state].r), float(COLORS[state].g), float(COLORS[state].b))
+        target_rgb = (float(END_COLOR[state].r), float(END_COLOR[state].g), float(END_COLOR[state].b))
         new_color = lerp(rgb, target_rgb, step/NUM_COLOR_STEPS)
-        
+        print(new_color)
         return (new_left, new_top, new_width, new_height, new_color)
     # Drawing path animation
     else: 
