@@ -1,7 +1,15 @@
 # Graph-Algorithm-Visualizer
 
+
 ## Description
-This is a graph algorithm visualizer. Note that the grid can be viewed as a directed graph where every single edge between neighboring cells exists and the weight of the edge going from cell A to cell B is the weight of cell B. All of the nodes on the grid start off with a weight of 1. Also note that each of the algorithms can handle different types of graphs (this will be covered below) A few things are changed from the normal behavior of the algorithm for visualization purposes, which will be described below as well. The visualizer provides a visualization for the following algorithms:
+This is a graph algorithm visualizer. Note that the grid can be viewed as a directed graph where every single edge between neighboring cells exists and the weight of the edge going from cell A to cell B is the weight of cell B. All of the nodes on the grid start off with a weight of 1. Also note that each of the algorithms can handle different types of graphs (this will be covered below) A few things are changed from the normal behavior of the algorithm for visualization purposes, which will be described below as well. The visualizer provides a visualization for the algorithms listed below.
+
+# How to run
+To run this project, simply clone the repo and run "python3 main.py". We have not created a dependencies file yet (is on our TODO list) so you may need to install all dependencies one by one.
+
+When the project is completely finished, we plan to migrate it over to a python repl application to prevent the need to clone the repo to be able to use the application.
+
+## Algorithms
 
 **Note: For most of these algorithms, the visualization method ends once the target is reached from the source. This is technically not correct for Bellman Ford and Johnson's algorithms, since they calculate the solutions to the single source shortest path problem (source to all vertices) and the all pairs shortest path problem (all vertices to each other) respectively. However, we do run these parts in the background so that when the target (for Bellman Ford) or source/target (for Johnson's) is/are moved, we can easily display the shortest paths instantly. For the other algorithms where we should stop when we reach the target, we go ahead and calculate the shortest path to every target in the background so that the target can be moved around.**
 
